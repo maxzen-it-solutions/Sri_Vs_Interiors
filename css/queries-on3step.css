@@ -1,0 +1,293 @@
+@media only screen and (max-width: 1280px) {
+#owl-testimonial{ margin-top:0px;}
+}
+
+@media only screen and (max-width: 1199px) {
+  .m-5-hor{ margin-left:0; margin-right:0;} 
+  .navbar-brand.white img.black { 
+    display:block;
+    margin:-10px;
+  }
+  .navbar-brand.white img.white { 
+    display:none; 
+  }
+  .white > nav > ul > li.has-children > a::after{
+      content:'';
+  }
+  .wraper-mob {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 80px;
+    background: #090c0d;
+    z-index: 999999;
+  }
+  .subnav {
+  display:none;
+  z-index:0;
+  }
+  header.show{
+  height:80px;
+  background: rgba(255, 255, 255, 0)!important;
+  }
+  nav ul li.space {
+    display: none;
+  }
+  .overlay-main {
+    top: 0px;
+  }
+  .navbar-toggle {
+    display: block;
+    position: fixed;
+    right: 7px;
+    top: 15px;
+    z-index: 9999;
+  }
+  .navbar-toggle:hover {
+    border: 1px solid #999;
+  }
+  
+.navbar-default-white .navbar-toggle {
+  border-color: transparent; /* Removes border color */
+  float: left; /* Move navbar toggle to left */
+}
+.navbar-default-white .navbar-toggle .icon-bar {
+  background-color: #fff; /* Changes regular toggle color */
+}
+.navbar-default-white .navbar-toggle .icon-bar:hover {
+  background-color: #fff; /* Changes toggle color on hover */
+}
+  /* menu block white */
+  .navbar-default-white {
+  position:fixed;
+  margin: 0px auto;
+    border-bottom: 0px groove rgba(255, 255, 255, 0);
+    top: 0px;
+  background: #090c0d;
+  }
+  .admin-bar .navbar-default-white {
+    top: 46px;
+    margin: -15px auto;
+  }
+  .navbar-default-white {
+  transform: translateZ(0); /* Scroll Fix in iPad */
+  height:75px;
+  }
+  .navbar-brand.white {
+  position:fixed;
+    left: 10px;
+    top: 5px;
+  }
+
+  .navbar-brand.white img {
+    width: auto;
+  height: auto;
+  max-height:70px!important;
+  }
+
+  #main-menu.white {
+    position: absolute;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background: #090c0d;
+    z-index: 1;
+    text-align: center;
+    overflow: auto;
+    overflow-x: hidden;
+  }
+  .menu-init {
+    opacity: 1;
+    top: -100%;
+    -webkit-transition: top 1s cubic-bezier(.165, 0.840, 0.440, 1.000), opacity 0.4s linear;
+    -moz-transition: top 1s cubic-bezier(.165, 0.840, 0.440, 1.000), opacity 0.4s linear;
+    -o-transition: top 1s cubic-bezier(.165, 0.840, 0.440, 1.000), opacity 0.4s linear;
+    transition: top 1s cubic-bezier(.165, 0.840, 0.440, 1.000), opacity 0.4s linear;
+  }
+  .menu-show {
+    opacity: 1;
+    top: 0px;
+    -webkit-transition: top 1s cubic-bezier(.165, 0.840, 0.440, 1.000), opacity 0.4s linear;
+    -moz-transition: top 1s cubic-bezier(.165, 0.840, 0.440, 1.000), opacity 0.4s linear;
+    -o-transition: top 1s cubic-bezier(.165, 0.840, 0.440, 1.000), opacity 0.4s linear;
+    transition: top 1s cubic-bezier(.165, 0.840, 0.440, 1.000), opacity 0.4s linear;
+  }
+  .admin-bar .menu-show {
+    top: -30px;
+  }
+  .white nav {
+    margin: 0 auto;
+    margin-top: 100px;
+    margin-bottom: 20px;
+    position: relative;
+    float: none;
+    top: 0px;
+    z-index: 999;
+  }
+  .white nav ul li, .white nav ul li.btn {
+    display: block;
+    position: relative;
+    margin: 0 0 0 0;
+    margin: 0 15px;
+    text-align: left;
+    background: rgba(0, 0, 0, 0);
+  }
+  .white nav ul li:hover>ul {
+    display: none;
+  }
+ .white nav a {
+    display: inline-block;
+    padding: 10px;
+    line-height: 30px;
+  }
+ .white nav ul ul {
+    display: none;
+    position: relative;
+    top: 0px;
+    margin-left: 15px;
+  }
+ .white nav ul ul li {
+    background: rgba(21, 23, 29, 0);
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
+  }
+ .white nav ul ul ul li {
+    position: relative;
+    top: 0px;
+    left: 0px;
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
+  }
+ .white nav ul ul li a {
+    line-height: 20px;
+    font-weight: 400;
+    font-size: 8pt;
+  }
+.white nav ul ul li a:hover {
+    color: #c8b16f!important;
+    background: none;
+}
+.white nav ul ul li a.active {
+    color: #c8b16f;
+    background: none;
+}
+  .white nav ul li .input-group {
+  margin-left:0px;
+  margin-right:30px;
+  }
+  /*menu block white end*/
+  
+  .goldpage h3 {
+  font-size:12pt;
+  }
+
+  .goldpage .text-left{ text-align:center;}
+  .goldpage i { display:block; font-size:24pt; margin:0 60px 0 60px;}
+}
+@media only screen and (max-width: 990px) {
+.text-left{ text-align:center;}
+.text-right{ text-align:center;}
+footer.main .logo{ margin-top:30px; }
+.comment-info .c-date { display: block; float: none;}
+.step-mains{
+  margin-top: 15px;
+}
+.step-main::after{
+  background: none;
+}
+}
+@media only screen and (max-width: 800px) {
+ 
+}
+@media only screen and (max-width: 780px) {
+ .admin-bar .navbar-default-white {
+    top: 46px;
+    margin: 0px auto;
+  }
+}
+@media only screen and (max-width: 600px) {
+ .admin-bar .navbar-default-white {
+    top: 46px;
+    margin: 0px auto;
+  }
+  .admin-bar .navbar-default-white.show{
+      top: 0px;
+  }
+  #blog-comment ul.children{
+      margin-left: 10px;
+  }
+  #blog-comment ul.children ul{
+      padding-left:10px;
+  }
+}
+@media(max-width:420px) {
+  section {
+    padding: 90px 0 90px 0;
+  }
+  .navbar-default {
+    border-bottom: 1px groove rgba(255, 255, 255, 0);
+  }
+  .navbar-brand {
+    left: 5px;
+  }
+  .navbar-brand.white {
+    left: 5px;
+  }
+  .p-30{ padding:10px;}
+  .p-60{ padding:20px;}
+  .p-90{ padding:30px;}
+  .autoheight, .autoheight-1, .autoheight-2{
+    margin-bottom: 50px;
+  }
+  
+  .pro-btn { font-size:9pt; }
+  .pro-btn.left a i{ font-size:10pt;  padding-right:10px; }
+  .pro-btn.right a i{ font-size:10pt; padding-left:10px; }
+  article .heading{
+      font-size:24px;
+  }
+  .blog-simple .blog-text span.user-post, .blog-simple .blog-text span.date-post, .blog-simple .blog-text span.comment{
+      font-size:11px;
+  }
+  .blog-simple .blog-text span.date-post, .blog-simple .blog-text span.comment{
+      margin-left:10px;
+  }
+  .sp-padding, .sp-padding-no-hide {
+    padding: 15px;
+  }
+}
+@media(max-width:375px) {
+ .features .bg-img-3{ 
+  padding:20px; 
+ }
+ ul#crumbs{
+  float: left;
+  margin-top: 0px;
+ }
+
+}
+/* Extra small devices (phones, 320px) */
+@media only screen and (max-width: 320px) {
+    #revolution-slider .tp-bgimg {
+        max-height: 180px !important;
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+}
+
+/* Small devices (321px - 480px) */
+@media only screen and (max-width: 480px) {
+    #revolution-slider .tp-bgimg {
+        max-height: 220px !important;
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+}
+
+/* Medium devices (481px - 768px) */
+@media only screen and (max-width: 768px) {
+    #revolution-slider .tp-bgimg {
+        max-height: 300px !important;
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+}
+

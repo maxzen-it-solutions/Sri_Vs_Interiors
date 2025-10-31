@@ -1,0 +1,66 @@
+.big-heading{
+font-size: 40pt;
+line-height:normal;
+font-weight: 500;
+}
+.sub-heading{
+font-size: 30pt;
+line-height:normal;
+font-weight: 400;
+}
+.btn-slider { 
+  display: block;
+  position:relative;
+  float:left;
+  width: 174px;
+  height: 45px;
+  font-size: 11pt;
+  font-weight: 500;
+  text-align: center;
+  letter-spacing:1px;
+  line-height: 40px;
+  color: #fff;
+  background: rgba(255,255,255,0);
+  border: 3px solid #c8b16f;
+  outline: none;
+  text-shadow: none;
+  margin: 15px auto;
+  cursor: pointer;
+  overflow: hidden;
+  -moz-transition: all 0.6s ease;
+  -ms-transition: all 0.6s ease;
+  -o-transition: all 0.6s ease;
+  transition: all 0.6s ease;
+}
+.btn-slider:hover { 
+  color: #fff;
+  background: #c8b16f;
+  border: 3px solid rgba(255, 255, 255, 0);
+  -moz-transition: all .6s ease;
+  -ms-transition: all .6s ease;
+  -o-transition: all .6s ease;
+  transition: all .6s ease; }
+.btn-slider:hover .shine{
+	-webkit-animation: sheen .6s alternate;
+	animation: sheen .6s alternate;
+	} 
+	.btn-slider:hover a{ color:#fff;}
+  .tp-caption a{
+    color: #fff;
+  }
+
+/* Added styles for contact page boxes */
+.contact-box {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #fff;
+  margin-bottom: 20px;
+}
+
+.contact-info-box {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #fff;
+}
