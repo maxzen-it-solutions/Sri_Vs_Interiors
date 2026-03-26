@@ -220,7 +220,7 @@ footer.main .logo{ margin-top:30px; }
 }
 @media(max-width:420px) {
   section {
-    padding: 90px 0 90px 0;
+    padding: 90px 0 10px 0;
   }
   .navbar-default {
     border-bottom: 1px groove rgba(255, 255, 255, 0);

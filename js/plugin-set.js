@@ -401,7 +401,7 @@ var masonry = new Macy({
                 delay: 15000,
                 startwidth: 1170,
                 startheight: 600,
-                onHoverStop: "on",
+                onHoverStop: "off",
                 thumbWidth: 100,
                 thumbHeight: 50,
                 thumbAmount: 3,

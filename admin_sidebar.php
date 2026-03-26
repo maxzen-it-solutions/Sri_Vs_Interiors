@@ -32,7 +32,11 @@ body.sidebar-open #overlay { display: block; }
         <a href="admin_dashboard.php" class="<?= ($current_page === 'admin_dashboard.php') ? 'active' : '' ?>"><i class="bi bi-speedometer2"></i> Dashboard</a>
         <a href="manage_users.php" class="<?= ($current_page === 'manage_users.php') ? 'active' : '' ?>"><i class="bi bi-people"></i> Manage Users</a>
         <a href="manage_products.php" class="<?= ($current_page === 'manage_products.php') ? 'active' : '' ?>"><i class="bi bi-cart3"></i> Manage Products</a>
+        <a href="manage_stats.php" class="<?= ($current_page === 'manage_stats.php') ? 'active' : '' ?>"><i class="bi bi-bar-chart-line"></i> Project Statistics</a>
+        <a href="manage_partners.php" class="<?= ($current_page === 'manage_partners.php') ? 'active' : '' ?>"><i class="bi bi-handshake"></i> Manage Partners</a>
         <a href="leads.php" class="<?= ($current_page === 'leads.php') ? 'active' : '' ?>"><i class="bi bi-person-plus"></i> Leads</a>
+        <a href="manage_enquiries.php" class="<?= ($current_page === 'manage_enquiries.php') ? 'active' : '' ?>"><i class="bi bi-chat-dots-fill"></i> Project Enquiries</a>
+        <a href="admin_reviews.php" class="<?= ($current_page === 'admin_reviews.php') ? 'active' : '' ?>"><i class="bi bi-star-fill"></i> Client Reviews</a>
     </nav>
     <a href="logout.php" class="logout-btn">Logout</a>
 </div>

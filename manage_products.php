@@ -7,17 +7,24 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
-// ----------------- Handle Add Project -----------------
+// ----------------- Handle Add Product -----------------
 if (isset($_POST['add_product'])) {
     $name = trim($_POST['name']);
-    $description = trim($_POST['description']);
     $client_name = trim($_POST['client_name']);
-    $address = trim($_POST['address']);
-    $category = $_POST['category'];
+    $project_address = trim($_POST['project_address']);
+    $description = trim($_POST['description']);
+    $category = strtolower(trim($_POST['category'] ?? ''));
+    $start_date = $_POST['start_date'];
+    $end_date = $_POST['end_date'];
+    $estimated_budget = trim($_POST['estimated_budget']);
+    $project_phase = $_POST['project_phase'];
     $status = $_POST['status'];
 
-    $stmt = $conn->prepare("INSERT INTO products (name, description, client_name, address, category, status) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssss", $name, $description, $client_name, $address, $category, $status);
+    $stmt = $conn->prepare("INSERT INTO products 
+    (name, client_name, project_address, description, category, estimated_budget, start_date, end_date, project_phase, status) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    // all columns are varchars/text so we bind as strings
+    $stmt->bind_param("ssssssssss", $name, $client_name, $project_address, $description, $category, $estimated_budget, $start_date, $end_date, $project_phase, $status);
     $stmt->execute();
 
     $project_id = $stmt->insert_id;
@@ -28,73 +35,115 @@ if (isset($_POST['add_product'])) {
         if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
 
         foreach ($_FILES['images']['tmp_name'] as $index => $tmpName) {
-            $fileName = $targetDir . basename($_FILES['images']['name'][$index]);
+            $fileName = $targetDir . time() . "_" . basename($_FILES['images']['name'][$index]);
             move_uploaded_file($tmpName, $fileName);
+
             $imgStmt = $conn->prepare("INSERT INTO project_images (project_id, image_path, order_index) VALUES (?, ?, ?)");
             $order_index = $index;
             $imgStmt->bind_param("isi", $project_id, $fileName, $order_index);
             $imgStmt->execute();
         }
     }
+
     header("Location: manage_products.php");
     exit;
 }
 
-// ----------------- Handle Delete Project -----------------
+// ----------------- Handle Delete Product -----------------
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
+
+    // delete images from folder
     $res = $conn->query("SELECT image_path FROM project_images WHERE project_id=$id");
     while ($row = $res->fetch_assoc()) {
         if (file_exists($row['image_path'])) unlink($row['image_path']);
     }
+
+    // delete product + images from DB
     $conn->query("DELETE FROM products WHERE id=$id");
+
     header("Location: manage_products.php");
     exit;
 }
 
-// ----------------- Handle Delete Individual Image -----------------
+// ----------------- Delete Single Image -----------------
 if (isset($_GET['delete_image'])) {
     $img_id = intval($_GET['delete_image']);
-    $res = $conn->query("SELECT image_path FROM project_images WHERE id=$img_id");
+
+    // fetch image path
+
+    $res = $conn->query("SELECT project_id, image_path FROM project_images WHERE id=$img_id");
+    $project_id = null;
     if ($row = $res->fetch_assoc()) {
-        if (file_exists($row['image_path'])) unlink($row['image_path']);
+        $project_id = intval($row['project_id']);
+        if (!empty($row['image_path']) && file_exists($row['image_path'])) {
+            @unlink($row['image_path']);
+        }
     }
+
+    // delete db record
     $conn->query("DELETE FROM project_images WHERE id=$img_id");
-    header("Location: manage_products.php");
-    exit;
+
+    // if AJAX request, return JSON and DO NOT redirect
+    $isAjax = false;
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        $isAjax = true;
+    }
+    if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'deleted_id' => $img_id, 'project_id' => $project_id]);
+        exit;
+    } else {
+        // default behaviour for non-AJAX (keep backward compatibility)
+        header("Location: manage_products.php");
+        exit;
+    }
 }
 
-// ----------------- Handle Edit Project -----------------
+
+// ----------------- Handle Edit Product -----------------
 if (isset($_POST['edit_product'])) {
     $id = intval($_POST['id']);
     $name = trim($_POST['name']);
-    $description = trim($_POST['description']);
     $client_name = trim($_POST['client_name']);
-    $address = trim($_POST['address']);
-    $category = $_POST['category'];
+    $project_address = trim($_POST['project_address']);
+    $description = trim($_POST['description']);
+    $category = strtolower(trim($_POST['category'] ?? ''));
+    $estimated_budget = trim($_POST['estimated_budget']);
+    // Use null coalescing operator (??) to assign null if the key doesn't exist
+    // Also checking for empty string to ensure NULL is passed to DB for empty dates
+    $start_date = !empty($_POST['start_date']) ? $_POST['start_date'] : null;
+    $end_date = !empty($_POST['end_date']) ? $_POST['end_date'] : null;
+    $project_phase = $_POST['project_phase'];
     $status = $_POST['status'];
 
-    $stmt = $conn->prepare("UPDATE products SET name=?, description=?, client_name=?, address=?, category=?, status=? WHERE id=?");
-    $stmt->bind_param("ssssssi", $name, $description, $client_name, $address, $category, $status, $id);
+    $stmt = $conn->prepare("UPDATE products SET 
+    name=?, client_name=?, project_address=?, description=?, category=?, estimated_budget=?, start_date=?, end_date=?, project_phase=?, status=? 
+    WHERE id=?");
+    $stmt->bind_param("ssssssssssi", $name, $client_name, $project_address, $description, $category, $estimated_budget, $start_date, $end_date, $project_phase, $status, $id);
     $stmt->execute();
 
+    // Upload any new images
     if (!empty($_FILES['images']['name'][0])) {
         $targetDir = "uploads/";
         if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
+
         foreach ($_FILES['images']['tmp_name'] as $index => $tmpName) {
-            $fileName = $targetDir . basename($_FILES['images']['name'][$index]);
+            $fileName = $targetDir . time() . "_" . basename($_FILES['images']['name'][$index]);
             move_uploaded_file($tmpName, $fileName);
+
             $imgStmt = $conn->prepare("INSERT INTO project_images (project_id, image_path, order_index) VALUES (?, ?, ?)");
             $order_index = time() + $index;
             $imgStmt->bind_param("isi", $id, $fileName, $order_index);
             $imgStmt->execute();
         }
     }
+
     header("Location: manage_products.php");
     exit;
 }
 
-// ----------------- Handle Save Image Order -----------------
+// ----------------- Save Image Order -----------------
 if (isset($_POST['save_order'])) {
     foreach ($_POST['order'] as $order_index => $img_id) {
         $stmt = $conn->prepare("UPDATE project_images SET order_index=? WHERE id=?");
@@ -105,7 +154,7 @@ if (isset($_POST['save_order'])) {
     exit;
 }
 
-// Fetch Projects
+// ----------------- Fetch Products -----------------
 $projects = $conn->query("SELECT * FROM products ORDER BY id DESC");
 ?>
 
@@ -145,6 +194,8 @@ h1 { font-size: 2rem; font-weight: 600; margin-bottom: 20px; }
 .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index:10; }
 .modal-content { background:#fff; padding:25px; border-radius:10px; width: 95%; max-width:550px; max-height: 90vh; overflow-y: auto; }
 .modal-content input, .modal-content select, .modal-content textarea { width:100%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #d1d5db; }
+/* Make select dropdowns inside modals scrollable when options overflow */
+.modal-content select.scrollable-select { max-height:180px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .btn-save { background-color:#2563eb; color:white; border:none; padding:10px 15px; border-radius:5px; cursor:pointer; }
 .btn-cancel { background-color:#6b7280; color:white; border:none; padding:10px 15px; border-radius:5px; margin-left:10px; cursor:pointer; }
 #existing_images { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
@@ -215,9 +266,7 @@ h1 { font-size: 2rem; font-weight: 600; margin-bottom: 20px; }
 
 <!-- Category Buttons -->
 <div class="action-buttons">
-    <button class="btn-add" onclick="openAddModal('Past')">+ Add Past Project</button>
-    <button class="btn-add" onclick="openAddModal('Present')">+ Add Present Project</button>
-    <button class="btn-add" onclick="openAddModal('Future')">+ Add Future Project</button>
+    <button class="btn-add" onclick="openAddModal()">+ Add Project</button>
 </div>
 
 <div class="product-list">
@@ -232,9 +281,13 @@ h1 { font-size: 2rem; font-weight: 600; margin-bottom: 20px; }
     </div>
     <?php while ($row = $projects->fetch_assoc()):
         // fetch images for this project
-        $res = $conn->query("SELECT id, image_path FROM project_images WHERE project_id=".$row['id']." ORDER BY order_index ASC");
+        $stmt_img = $conn->prepare("SELECT id, image_path FROM project_images WHERE project_id=? ORDER BY order_index ASC");
+        $stmt_img->bind_param("i", $row['id']);
+        $stmt_img->execute();
+        $res = $stmt_img->get_result();
         $images = [];
         while ($img = $res->fetch_assoc()) $images[] = $img;
+        $stmt_img->close();
         $imgCount = count($images);
         $short = implode(' ', array_slice(preg_split('/\s+/', trim($row['description'])), 0, 2));
         if (str_word_count($row['description']) > 2) $short .= '...';
@@ -293,10 +346,14 @@ h1 { font-size: 2rem; font-weight: 600; margin-bottom: 20px; }
             i.src = img.image_path;
             i.style.width = '100%'; i.style.height = '100%'; i.style.objectFit = 'cover'; i.style.borderRadius = '6px';
             const del = document.createElement('a');
-            del.href = 'manage_products.php?delete_image=' + img.id;
-            del.textContent = 'x';
-            del.style.position = 'absolute'; del.style.top='6px'; del.style.right='6px'; del.style.background='rgba(220,38,38,0.85)'; del.style.color='#fff'; del.style.padding='2px 6px'; del.style.borderRadius='4px'; del.style.textDecoration='none';
-            del.onclick = function(evt){ if(!confirm('Delete this image?')) { evt.preventDefault(); } };
+                del.href = 'manage_products.php?delete_image=' + img.id;
+                del.textContent = 'x';
+                del.className = 'delete-image';
+                // store project id on the delete link so the delegated handler can update product-card
+                del.dataset.projectId = card.dataset.projectId;
+                del.style.position = 'absolute'; del.style.top='6px'; del.style.right='6px'; del.style.background='rgba(220,38,38,0.85)'; del.style.color='#fff'; del.style.padding='2px 6px'; del.style.borderRadius='4px'; del.style.textDecoration='none';
+                // keep default navigation prevented; deletion handled by delegated AJAX handler
+                del.onclick = function(evt){ evt.preventDefault(); };
             wrap.appendChild(i); wrap.appendChild(del); grid.appendChild(wrap);
         });
         document.getElementById('galleryModal').style.display = 'flex';
@@ -323,22 +380,55 @@ h1 { font-size: 2rem; font-weight: 600; margin-bottom: 20px; }
 <div class="modal-content">
 <h2>Add Project</h2>
 <form method="post" enctype="multipart/form-data">
-<input type="text" name="name" placeholder="Project Name" required>
-<input type="text" name="client_name" placeholder="Client Name" required>
-<input type="text" name="address" placeholder="Address" required>
-<textarea name="description" placeholder="Project Description" required></textarea>
-<select name="category" id="add_category" required>
-<option value="Past">Past</option>
-<option value="Present">Present</option>
-<option value="Future">Future</option>
-</select>
-<input type="file" name="images[]" accept="image/*" multiple>
-<select name="status" required>
-<option value="active">Active</option>
-<option value="inactive">Inactive</option>
-</select>
-<button type="submit" name="add_product" class="btn-save">Save</button>
-<button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+
+  <input type="text" name="name" placeholder="Project Name" required>
+
+  <input type="text" name="client_name" placeholder="Client Name" required>
+
+  <textarea name="project_address" placeholder="Project Address" rows="3" required></textarea>
+
+  <textarea name="description" placeholder="Project Description" required></textarea>
+
+  <select name="category" id="add_category" required class="scrollable-select">
+        <option value="">Select category</option>
+
+        <option value="bedroom">Bedroom</option>
+        <option value="hall">Hall / Living Room</option>
+        <option value="kitchen">Kitchen</option>
+        <option value="corridor">Corridor</option>
+        <option value="balcony">Balcony</option>
+        <option value="tv-room">TV Room</option>
+        <option value="false-ceiling">False Ceiling</option>
+        <option value="wardrobe">Wardrobe</option>
+        <option value="wall-design">Wall Design</option>
+        <option value="others">Others</option>
+
+    </select>
+
+  <input type="text" name="estimated_budget" placeholder="Estimated Budget (₹)" required>
+
+    <label>Project Duration</label>
+
+    <input type="date" name="start_date" required>
+
+    <input type="date" name="end_date" required>
+
+  <select name="project_phase" required>
+    <option value="present" selected>Present (Ongoing)</option>
+    <option value="past">Past (Completed)</option>
+    <option value="future">Future (Upcoming)</option>
+  </select>
+
+  <input type="file" name="images[]" accept="image/*" multiple>
+
+  <select name="status" required>
+    <option value="active">Active</option>
+    <option value="inactive">Inactive</option>
+  </select>
+
+  <button type="submit" name="add_product" class="btn-save">Save</button>
+  <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+
 </form>
 </div>
 </div>
@@ -348,32 +438,52 @@ h1 { font-size: 2rem; font-weight: 600; margin-bottom: 20px; }
 <div class="modal-content">
 <h2>Edit Project</h2>
 <form method="post" enctype="multipart/form-data">
-<input type="hidden" name="id" id="edit_id">
-<input type="text" name="name" id="edit_name" placeholder="Project Name" required>
-<input type="text" name="client_name" id="edit_client_name" placeholder="Client Name" required>
-<input type="text" name="address" id="edit_address" placeholder="Address" required>
-<textarea name="description" id="edit_description" placeholder="Project Description" required></textarea>
-<select name="category" id="edit_category" required>
-<option value="Past">Past</option>
-<option value="Present">Present</option>
-<option value="Future">Future</option>
-</select>
-<div id="existing_images"></div>
-<input type="file" name="images[]" accept="image/*" multiple>
-<select name="status" id="edit_status" required>
-<option value="active">Active</option>
-<option value="inactive">Inactive</option>
-</select>
-<button type="submit" name="edit_product" class="btn-save">Update</button>
-<button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+
+  <input type="hidden" name="id" id="edit_id">
+
+  <input type="text" name="name" id="edit_name" placeholder="Project Name" required>
+
+  <input type="text" name="client_name" id="edit_client_name" placeholder="Client Name" required>
+
+  <textarea name="project_address" id="edit_project_address" placeholder="Project Address" rows="3" required></textarea>
+
+  <textarea name="description" id="edit_description" placeholder="Project Description" required></textarea>
+
+  <select name="category" id="edit_category" required class="scrollable-select"></select>
+
+  <input type="text" name="estimated_budget" id="edit_estimated_budget" placeholder="Estimated Budget (₹)" required>
+
+  <label>Project Duration</label>
+
+  <input type="date" name="start_date" id="edit_start_date" required>
+
+  <input type="date" name="end_date" id="edit_end_date" required>
+
+  <select name="project_phase" id="edit_project_phase" required>
+    <option value="present">Present (Ongoing)</option>
+    <option value="past">Past (Completed)</option>
+    <option value="future">Future (Upcoming)</option>
+  </select>
+
+  <div id="existing_images"></div>
+
+  <input type="file" name="images[]" accept="image/*" multiple>
+
+  <select name="status" id="edit_status" required>
+    <option value="active">Active</option>
+    <option value="inactive">Inactive</option>
+  </select>
+
+  <button type="submit" name="edit_product" class="btn-save">Update</button>
+  <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+
 </form> 
 </div>
 </div>
 
 <script>
-function openAddModal(category) {
+function openAddModal() {
     document.getElementById('addModal').style.display = 'flex';
-    document.getElementById('add_category').value = category;
 }
 function closeModal() {
     document.getElementById('addModal').style.display = 'none';
@@ -387,10 +497,13 @@ function openEditModal(id) {
     .then(data => {
         document.getElementById('edit_id').value = data.id;
         document.getElementById('edit_name').value = data.name;
-        document.getElementById('edit_client_name').value = data.client_name;
-        document.getElementById('edit_address').value = data.address;
         document.getElementById('edit_description').value = data.description;
-        document.getElementById('edit_category').value = data.category;
+        document.getElementById('edit_category').value = data.category;document.getElementById('edit_client_name').value = data.client_name;
+        document.getElementById('edit_project_address').value = data.project_address;
+        document.getElementById('edit_estimated_budget').value = data.estimated_budget;
+        document.getElementById('edit_start_date').value = data.start_date;
+        document.getElementById('edit_end_date').value = data.end_date;
+        document.getElementById('edit_project_phase').value = data.project_phase;
         document.getElementById('edit_status').value = data.status;
 
         let imgContainer = document.getElementById('existing_images');
@@ -400,12 +513,39 @@ function openEditModal(id) {
             div.className = 'draggable-img';
             div.draggable = true;
             div.dataset.id = img.id;
-            div.innerHTML = `<img src="${img.image_path}"><a href="manage_products.php?delete_image=${img.id}">x</a>`;
+            // delete link uses class 'delete-image' and carries project id so AJAX can update UI
+            div.innerHTML = `<img src="${img.image_path}"><a href="manage_products.php?delete_image=${img.id}" class="delete-image" data-img-id="${img.id}" data-project-id="${data.id}">x</a>`;
             imgContainer.appendChild(div);
         });
         makeImagesDraggable();
     });
 }
+
+// Populate edit_category select with room categories (lowercase values)
+document.addEventListener('DOMContentLoaded', function(){
+    const categories = [
+            'bedroom',
+            'hall',
+            'kitchen',
+            'corridor',
+            'balcony',
+            'tv-room',
+            'false-ceiling',
+            'wardrobe',
+            'wall-design',
+            'others'
+            ];
+    const editSelect = document.getElementById('edit_category');
+    const addSelect = document.getElementById('add_category');
+    if (editSelect) {
+        editSelect.innerHTML = '<option value="">Select category</option>' + categories.map(c => `<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+        editSelect.style.display = '';
+    }
+    if (addSelect) {
+        // ensure addSelect uses same categories (in case patch missed it)
+        addSelect.innerHTML = '<option value="">Select category</option>' + categories.map(c => `<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+    }
+});
 
 function makeImagesDraggable() {
     const container = document.getElementById('existing_images');
@@ -442,5 +582,68 @@ function saveOrder() {
         });
     });
 </script>
+
+<script>
+// Delegate click handler for any delete-image links (links with "delete_image=" in href)
+// Delegated handler for delete-image links. Uses AJAX to delete and updates UI without reloading.
+document.addEventListener('click', function(e) {
+    const a = e.target.closest('a.delete-image');
+    if (!a) return;
+    e.preventDefault();
+
+    if (!confirm('Delete this image?')) return;
+
+    const href = a.getAttribute('href');
+    // send AJAX GET to delete endpoint
+    fetch(href, {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(resp => resp.json().catch(() => ({ success: false })))
+    .then(data => {
+        if (data && data.success) {
+            const deletedId = String(data.deleted_id || a.dataset.imgId);
+            const projectId = String(data.project_id || a.dataset.projectId || '');
+
+            // remove element from modal (draggable-img wrapper) or gallery
+            const wrapper = a.closest('.draggable-img') || a.closest('div');
+            if (wrapper) wrapper.remove();
+
+            // remove any matching image card in galleryGrid
+            const galleryGrid = document.getElementById('galleryGrid');
+            if (galleryGrid) {
+                galleryGrid.querySelectorAll('div').forEach(card => {
+                    const delLink = card.querySelector('a');
+                    if (delLink && delLink.href && delLink.href.indexOf('delete_image=' + deletedId) !== -1) {
+                        card.remove();
+                    }
+                });
+            }
+
+            // update the product-card's data-images attribute and images-count-btn
+            if (projectId) {
+                const productCard = document.querySelector(`.product-card[data-project-id="${projectId}"]`);
+                if (productCard) {
+                    try {
+                        let images = JSON.parse(productCard.getAttribute('data-images') || '[]');
+                        images = images.filter(img => String(img.id) !== deletedId);
+                        productCard.setAttribute('data-images', JSON.stringify(images));
+                        const imgCountBtn = productCard.querySelector('.images-count-btn');
+                        if (imgCountBtn) imgCountBtn.textContent = images.length + ' image' + (images.length==1?'':'s');
+                    } catch (err) {
+                        // ignore
+                    }
+                }
+            }
+
+            // keep edit modal open; no reload
+        } else {
+            alert('Unable to delete image. Try again.');
+        }
+    })
+    .catch(err => { console.error(err); alert('Request failed. Check console.'); });
+});
+</script>
+
 </body>
 </html>

@@ -20,6 +20,9 @@ $active = $activeResult ? (int)$activeResult->fetch_assoc()['total'] : 0;
 
 $leadsResult = $conn->query("SELECT COUNT(*) AS total FROM leads");
 $leads = $leadsResult ? (int)$leadsResult->fetch_assoc()['total'] : 0;
+
+$enquiriesResult = $conn->query("SELECT COUNT(*) AS total FROM project_enquiries");
+$enquiries = $enquiriesResult ? (int)$enquiriesResult->fetch_assoc()['total'] : 0;
 ?>
 
 <!DOCTYPE html>
@@ -113,7 +116,9 @@ h1 {
 .card-inactive .icon-wrapper { background-color: #ef4444; }
 .card-active .icon-wrapper { background-color: #2563eb; }
 .card-leads .icon-wrapper { background-color: #16a34a; }
-
+.card-enquiries .icon-wrapper {
+    background-color: #f59e0b; /* Amber / Orange */
+}
 /* Responsive adjustments */
 @media (max-width: 992px) {
     .main-content {
@@ -156,6 +161,15 @@ h1 {
                 <div>
                     <h3>Leads</h3>
                     <p><?= $leads; ?></p>
+                </div>
+            </div>
+        </a>
+        <a href="manage_enquiries.php" class="card-link">
+            <div class="card card-enquiries">
+                <div class="icon-wrapper"><i class="bi bi-chat-dots-fill"></i></div>
+                <div>
+                    <h3>Project Enquiries</h3>
+                    <p><?= $enquiries; ?></p>
                 </div>
             </div>
         </a>
