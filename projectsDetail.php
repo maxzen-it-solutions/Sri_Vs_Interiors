@@ -75,10 +75,12 @@ if ($currentProject) {
     $imgStmt->execute();
     $r2 = $imgStmt->get_result();
     while ($row = $r2->fetch_assoc()) $images[] = $row['image_path'];
+    while ($row = $r2->fetch_assoc()) $images[] = '/' . ltrim($row['image_path'], '/');
     if ($r2) $r2->free();
     $imgStmt->close();
   }
   $mainImg = count($images) ? $images[0] : 'img/placeholder.jpg';
+  $mainImg = count($images) ? '/' . ltrim($images[0], '/') : '/img/placeholder.jpg';
 }
 
 include 'header.php';
@@ -403,6 +405,9 @@ if (empty($projects)) {
   
 
 function loadProject(pid){
+  const container = document.getElementById('main-project');
+  container.innerHTML = '<div class="ajax-loader"></div>';
+  
   fetch('projectDetailAjax.php?id='+pid)
     .then(res=>res.text())
     .then(html=>{

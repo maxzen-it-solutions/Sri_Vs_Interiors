@@ -76,14 +76,18 @@ if (isset($_GET['toggle'])) {
 // Handle delete
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    $res = $conn->query("SELECT logo FROM partners WHERE id = $id");
+    
+    $stmt_get = $conn->prepare("SELECT logo FROM partners WHERE id = ?");
+    $stmt_get->bind_param("i", $id);
+    $stmt_get->execute();
+    $res = $stmt_get->get_result();
     if ($res && $row = $res->fetch_assoc()) {
         $logo = $row['logo'];
-        // Delete file
         if ($logo && file_exists('uploads/partners/' . $logo)) {
             unlink('uploads/partners/' . $logo);
         }
     }
+    $stmt_get->close();
 
     // Delete from database
     $stmt = $conn->prepare("DELETE FROM partners WHERE id = ?");

@@ -190,9 +190,9 @@ footer.main .logo{ margin-top:30px; }
 .step-mains{
   margin-top: 15px;
 }
-.step-main::after{
+/* .step-main::after{
   background: none;
-}
+} */
 }
 @media only screen and (max-width: 800px) {
  

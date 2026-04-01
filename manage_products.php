@@ -53,16 +53,39 @@ if (isset($_POST['add_product'])) {
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
 
-    // delete images from folder
-    $res = $conn->query("SELECT image_path FROM project_images WHERE project_id=$id");
+    // 1. Fetch image paths before deleting records
+    $stmt_files = $conn->prepare("SELECT image_path FROM project_images WHERE project_id = ?");
+    $stmt_files->bind_param("i", $id);
+    $stmt_files->execute();
+    $res = $stmt_files->get_result();
+    $image_paths = [];
     while ($row = $res->fetch_assoc()) {
-        if (file_exists($row['image_path'])) unlink($row['image_path']);
+        $image_paths[] = $row['image_path'];
+    }
+    $stmt_files->close();
+
+    // 2. Use Transaction for Atomic Deletion
+    $conn->begin_transaction();
+    try {
+        $del_imgs = $conn->prepare("DELETE FROM project_images WHERE project_id = ?");
+        $del_imgs->bind_param("i", $id);
+        $del_imgs->execute();
+
+        $del_proj = $conn->prepare("DELETE FROM products WHERE id = ?");
+        $del_proj->bind_param("i", $id);
+        $del_proj->execute();
+
+        $conn->commit();
+
+        // 3. Clean up physical files after successful DB commit
+        foreach ($image_paths as $path) {
+            if (!empty($path) && file_exists($path)) @unlink($path);
+        }
+    } catch (Exception $e) {
+        $conn->rollback();
     }
 
-    // delete product + images from DB
-    $conn->query("DELETE FROM products WHERE id=$id");
-
-    header("Location: manage_products.php");
+    header("Location: manage_products.php?status=deleted");
     exit;
 }
 
@@ -70,19 +93,23 @@ if (isset($_GET['delete'])) {
 if (isset($_GET['delete_image'])) {
     $img_id = intval($_GET['delete_image']);
 
-    // fetch image path
-
-    $res = $conn->query("SELECT project_id, image_path FROM project_images WHERE id=$img_id");
+    // 1. Fetch path using prepared statement
+    $stmt_get = $conn->prepare("SELECT project_id, image_path FROM project_images WHERE id = ?");
+    $stmt_get->bind_param("i", $img_id);
+    $stmt_get->execute();
+    $res = $stmt_get->get_result();
     $project_id = null;
     if ($row = $res->fetch_assoc()) {
         $project_id = intval($row['project_id']);
-        if (!empty($row['image_path']) && file_exists($row['image_path'])) {
-            @unlink($row['image_path']);
-        }
+        if (!empty($row['image_path']) && file_exists($row['image_path'])) @unlink($row['image_path']);
     }
+    $stmt_get->close();
 
-    // delete db record
-    $conn->query("DELETE FROM project_images WHERE id=$img_id");
+    // 2. Delete DB record
+    $stmt_del = $conn->prepare("DELETE FROM project_images WHERE id = ?");
+    $stmt_del->bind_param("i", $img_id);
+    $stmt_del->execute();
+    $stmt_del->close();
 
     // if AJAX request, return JSON and DO NOT redirect
     $isAjax = false;
@@ -593,6 +620,10 @@ document.addEventListener('click', function(e) {
 
     if (!confirm('Delete this image?')) return;
 
+    // Visual feedback: Start loading
+    const wrapper = a.closest('.draggable-img') || a.closest('div');
+    if (wrapper) wrapper.style.opacity = '0.3';
+
     const href = a.getAttribute('href');
     // send AJAX GET to delete endpoint
     fetch(href, {
@@ -606,7 +637,6 @@ document.addEventListener('click', function(e) {
             const projectId = String(data.project_id || a.dataset.projectId || '');
 
             // remove element from modal (draggable-img wrapper) or gallery
-            const wrapper = a.closest('.draggable-img') || a.closest('div');
             if (wrapper) wrapper.remove();
 
             // remove any matching image card in galleryGrid

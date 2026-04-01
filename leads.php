@@ -14,7 +14,9 @@ include 'admin_sidebar.php';   // sidebar included after session check
 // Handle delete request
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    $conn->query("DELETE FROM leads WHERE id = $id");
+    $stmt = $conn->prepare("DELETE FROM leads WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
     header("Location: leads.php"); // refresh after deletion
     exit;
 }

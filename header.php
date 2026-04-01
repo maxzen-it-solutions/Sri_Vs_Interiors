@@ -60,6 +60,33 @@
       lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
     });
   });
+
+  // Reusable Loader Logic
+  window.showPreloader = function() {
+    const preloader = document.querySelector(".preloader-white");
+    const bg = document.querySelector(".bg-preloader-white");
+    if (preloader) preloader.style.display = "flex";
+    if (bg) bg.style.display = "block";
+  };
+
+  window.hidePreloader = function() {
+    const preloader = document.querySelector(".preloader-white");
+    const bg = document.querySelector(".bg-preloader-white");
+    if (preloader) preloader.style.display = "none";
+    if (bg) bg.style.display = "none";
+  };
+
+  // Show loader on all standard form submissions
+  document.addEventListener("DOMContentLoaded", function() {
+    const forms = document.querySelectorAll("form");
+    forms.forEach(form => {
+      if (!form.classList.contains('no-loader')) {
+        form.addEventListener("submit", function() {
+          window.showPreloader();
+        });
+      }
+    });
+  });
   </script>
 
   <!-- preloader -->

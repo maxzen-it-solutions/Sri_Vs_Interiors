@@ -436,20 +436,20 @@ include 'db_connect.php';
           <div style="margin-bottom:25px;">
             <label style="font-weight:600; display:block; margin-bottom:15px; color:#333;">Rating</label>
             <div class="star-rating">
-              <input type="radio" name="rating" value="5" id="star5" required>
-              <label for="star5">★</label>
-              
-              <input type="radio" name="rating" value="4" id="star4">
-              <label for="star4">★</label>
-              
-              <input type="radio" name="rating" value="3" id="star3">
-              <label for="star3">★</label>
+              <input type="radio" name="rating" value="1" id="star1">
+              <label for="star1">★</label>
               
               <input type="radio" name="rating" value="2" id="star2">
               <label for="star2">★</label>
               
-              <input type="radio" name="rating" value="1" id="star1">
-              <label for="star1">★</label>
+              <input type="radio" name="rating" value="3" id="star3">
+              <label for="star3">★</label>
+              
+              <input type="radio" name="rating" value="4" id="star4">
+              <label for="star4">★</label>
+              
+              <input type="radio" name="rating" value="5" id="star5" required>
+              <label for="star5">★</label>
             </div>
           </div>
 
@@ -686,6 +686,11 @@ include 'db_connect.php';
   cursor: pointer;
   transition: all 0.3s ease;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
 }
 /* Left arrow */
 .nav-btn.prev {
@@ -757,10 +762,59 @@ include 'db_connect.php';
 /* Make nav arrows visible and inside content on small screens */
 @media (max-width: 768px) {
   .content-area { overflow: visible; }
-  .nav-btn { display: flex; position: absolute; top: 50%; transform: translateY(-50%); z-index: 50; width:44px; height:44px; }
+  .nav-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; transform: translateY(-50%); z-index: 50; width:44px; height:44px; line-height: 1; padding: 0; }
   .nav-btn.prev { left: 8px; }
   .nav-btn.next { right: 8px; }
   .nav-btn { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  
+  /* MOBILE TIMELINE FIX - Vertical stack with dotted connectors */
+  .timeline {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 20px !important;
+    max-width: 400px !important;
+    margin: 0 auto 70px !important;
+  }
+  .timeline::before {
+    display: block !important;
+    left: 32.5px !important; /* Centered relative to the 55px circles (5px margin-left + 27.5px radius) */
+    top: 40px !important;    /* Starts at the center of the first circle */
+    bottom: 40px !important; /* Ends at the center of the last circle */
+    width: 2px !important;
+    height: auto !important;
+    background: repeating-linear-gradient(
+      to bottom,
+      #d1d1d1,
+      #d1d1d1 5px,
+      transparent 8px,
+      transparent 12px
+    ) !important;
+    transform: none !important;
+  }
+  .timeline .step {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    margin-bottom: 0 !important;
+    position: relative !important;
+    padding: 12px 0 !important;
+  }
+  .timeline .step span {
+    flex-shrink: 0 !important;
+    margin-right: 20px !important;
+    margin-left: 5px !important;
+    z-index: 2 !important;
+  }
+  .timeline .step p {
+    margin: 0 !important;
+    text-align: left !important;
+    flex: 1 !important;
+    font-size: 14px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .timeline .step:not(:last-child)::after { display: none !important; }
   
   /* Star rating responsive */
   .star-rating {

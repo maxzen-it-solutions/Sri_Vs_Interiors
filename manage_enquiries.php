@@ -14,7 +14,9 @@ include 'admin_sidebar.php';
 // Handle delete enquiry
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    $conn->query("DELETE FROM project_enquiries WHERE id = $id");
+    $stmt = $conn->prepare("DELETE FROM project_enquiries WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
     header("Location: manage_enquiries.php");
     exit;
 }
