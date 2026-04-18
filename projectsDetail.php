@@ -74,13 +74,13 @@ if ($currentProject) {
     $imgStmt->bind_param('i', $pid);
     $imgStmt->execute();
     $r2 = $imgStmt->get_result();
-    while ($row = $r2->fetch_assoc()) $images[] = $row['image_path'];
-    while ($row = $r2->fetch_assoc()) $images[] = '/' . ltrim($row['image_path'], '/');
+    while ($row = $r2->fetch_assoc()) {
+        $images[] = $row['image_path'];
+    }
     if ($r2) $r2->free();
     $imgStmt->close();
   }
   $mainImg = count($images) ? $images[0] : 'img/placeholder.jpg';
-  $mainImg = count($images) ? '/' . ltrim($images[0], '/') : '/img/placeholder.jpg';
 }
 
 include 'header.php';
@@ -106,8 +106,10 @@ include 'header.php';
 
 <?php
 // $projects already fetched above. Do not overwrite `$currentProject` here.
-if (empty($projects)) {
-  echo '<section style="padding:40px 0;"><div style="max-width:1200px;margin:0 auto;">No present projects found.</div></section>';
+if (!$currentProject) {
+  echo '<section style="padding:100px 0; text-align:center;"><div style="max-width:1200px;margin:0 auto;">Project not found or is no longer active.</div></section>';
+  include 'footer.php';
+  exit;
 }
 ?>
 
@@ -118,23 +120,22 @@ if (empty($projects)) {
     <!-- LEFT: IMAGES -->
     <div>
 
-      <!-- Main Image -->
-      <div style="position:relative;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.15);">
+      <div style="position:relative; border-radius:14px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.15); background:#000;">
+        <div class="main-img-holder" style="aspect-ratio:auto; height:auto;">
+          <!-- LEFT ARROW -->
+          <button onclick="prevImage()" class="proj-arrow prev" aria-label="Previous image">❮</button>
 
-        <!-- LEFT ARROW -->
-        <button onclick="prevImage()" class="proj-arrow prev" aria-label="Previous image">❮</button>
+          <!-- MAIN IMAGE -->
+          <img id="mainProjectImg" class="gallery-main-img"
+               src="<?php echo htmlspecialchars($mainImg); ?>"
+               style="width:100%; height:550px; max-height:70vh; object-fit:cover; display:block;"
+               loading="eager">
 
-        <!-- MAIN IMAGE -->
-        <img id="mainProjectImg"
-             src="<?php echo htmlspecialchars($mainImg); ?>"
-             style="width:100%;height:65vh;object-fit:cover;display:block;">
-
-        <!-- RIGHT ARROW -->
-        <button onclick="nextImage()" class="proj-arrow next" aria-label="Next image">❯</button>
-
+          <!-- RIGHT ARROW -->
+          <button onclick="nextImage()" class="proj-arrow next" aria-label="Next image">❯</button>
+        </div>
       </div>
 
-      <!-- Thumbnails + Arrows -->
       <?php if (!empty($images)): ?>
       <div style="display:flex;align-items:center;gap:10px;margin-top:15px;justify-content:center;">
 

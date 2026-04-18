@@ -12,9 +12,9 @@ if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheTTL) {
     $data = json_decode(file_get_contents($cacheFile), true);
 } else {
     $url = "https://maps.googleapis.com/maps/api/place/details/json"
-         . "?place_id={$PLACE_ID}"
-         . "&fields=name,rating,reviews"
-         . "&key={$API_KEY}";
+        . "?place_id={$PLACE_ID}"
+        . "&fields=name,rating,reviews"
+        . "&key={$API_KEY}";
 
     $response = file_get_contents($url);
     if ($response === false) {

@@ -26,13 +26,13 @@ if ($result && $result->num_rows > 0) {
 
     while ($row = $result->fetch_assoc()) {
         echo '<tr>
-                <td>'. $row['id'] .'</td>
-                <td>'. htmlspecialchars($row['name']) .'</td>
-                <td>'. htmlspecialchars($row['email']) .'</td>
-                <td>'. nl2br(htmlspecialchars($row['message'])) .'</td>
-                <td>'. $row['created_at'] .'</td>
+                <td>' . $row['id'] . '</td>
+                <td>' . htmlspecialchars($row['name']) . '</td>
+                <td>' . htmlspecialchars($row['email']) . '</td>
+                <td>' . nl2br(htmlspecialchars($row['message'])) . '</td>
+                <td>' . $row['created_at'] . '</td>
                 <td>
-                    <a href="fetch_leads.php?delete='. $row['id'] .'" onclick="return confirm(\'Are you sure?\');" style="color:white; background:#d9534f; padding:5px 10px; border-radius:4px; text-decoration:none;">Delete</a>
+                    <a href="fetch_leads.php?delete=' . $row['id'] . '" onclick="return confirm(\'Are you sure?\');" style="color:white; background:#d9534f; padding:5px 10px; border-radius:4px; text-decoration:none;">Delete</a>
                 </td>
               </tr>';
     }
@@ -40,4 +40,3 @@ if ($result && $result->num_rows > 0) {
 } else {
     echo '<p>No leads found.</p>';
 }
-?>

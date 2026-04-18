@@ -13,7 +13,7 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <!-- Themify + Font Awesome -->
     <link rel="stylesheet" href="css/themify-icons.css">
-<!-- Font Awesome 6.5.2 (Full Bundle: Solid + Regular + Brands) -->
+    <!-- Font Awesome 6.5.2 (Full Bundle: Solid + Regular + Brands) -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -140,8 +140,8 @@
 
           <!-- logo -->
           <a class="navbar-brand white" href="index.php">
-            <img class="white" alt="logo" src="img/logo.png">
-            <img class="black" alt="logo" src="img/logo.png">
+            <img class="white" id="adminLogo" alt="logo" src="img/logo.png" style="cursor:pointer;">
+            <img class="black" id="adminLogoSticky" alt="logo" src="img/logo.png" style="cursor:pointer;">
           </a> 
           <!-- logo end -->
           
@@ -382,7 +382,7 @@
     <!-- Mobile Logo (Visible when menu opens) -->
     <div class="mobile-logo">
       <a href="index.php">
-        <img src="img/logo.png" alt="SRI VS INTERIORS">
+        <img src="img/logo.png" id="adminLogoMobile" alt="SRI VS INTERIORS" style="cursor:pointer;">
       </a>
     </div>
 

@@ -111,84 +111,315 @@ $partners = $conn->query("SELECT * FROM partners ORDER BY id DESC");
 ?>
 
 <?php include 'admin_sidebar.php'; ?>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --admin-bg: #f8fafc;
+        --card-bg: #ffffff;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --accent-gold: #c8b16f;
+        --accent-blue: #3b82f6;
+        --accent-green: #10b981;
+        --accent-red: #ef4444;
+        --border-color: #e2e8f0;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .main-content {
+        padding: 2.5rem 2.5rem 5rem 2.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .partners-container {
+        background-color: var(--admin-bg);
+        min-height: calc(100vh - 60px);
+    }
+
+    .page-header {
+        margin-bottom: 2.5rem;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .page-header h1 {
+        font-size: 1.875rem;
+        font-weight: 800;
+        color: var(--text-main);
+        letter-spacing: -0.025em;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .alert-custom {
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .alert-success-custom {
+        background: #ecfdf5;
+        border: 1px solid var(--accent-green);
+        color: #065f46;
+    }
+
+    .alert-error-custom {
+        background: #fef2f2;
+        border: 1px solid var(--accent-red);
+        color: #991b1b;
+    }
+
+    .partners-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 2rem;
+    }
+
+    .card-custom {
+        background: var(--card-bg);
+        border-radius: 1.25rem;
+        padding: 2rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        transition: var(--transition);
+    }
+
+    .card-custom:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header-custom {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .icon-box {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        background: #fffcf5;
+        color: var(--accent-gold);
+        border: 1px solid #fdf3dc;
+    }
+
+    .card-header-custom h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-main);
+    }
+
+    .upload-zone {
+        position: relative;
+        border: 2px dashed var(--border-color);
+        border-radius: 1rem;
+        padding: 2rem;
+        text-align: center;
+        background: var(--admin-bg);
+        transition: var(--transition);
+        cursor: pointer;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .upload-zone:hover {
+        border-color: var(--accent-gold);
+        background: #fffcf5;
+    }
+
+    .btn-premium {
+        width: 100%;
+        background: var(--text-main);
+        color: white;
+        padding: 0.875rem;
+        border-radius: 0.625rem;
+        border: none;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-premium:hover {
+        background-color: #1e293b;
+        transform: translateY(-1px);
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-custom th {
+        padding: 1rem;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--admin-bg);
+    }
+
+    .table-custom td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .logo-wrapper {
+        background: #f8fafc;
+        padding: 0.5rem;
+        border-radius: 0.75rem;
+        display: inline-block;
+        border: 1px solid var(--border-color);
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.375rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .status-active { background: #dcfce7; color: #166534; }
+    .status-inactive { background: #f1f5f9; color: #475569; }
+
+    .action-group {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .btn-toggle { background: #eff6ff; color: var(--accent-blue); }
+    .btn-toggle:hover { background: #dbeafe; }
+    .btn-delete { background: #fef2f2; color: var(--accent-red); }
+    .btn-delete:hover { background: #fee2e2; }
+
+    @media (max-width: 992px) {
+        .main-content { padding: 5rem 1rem 2rem 1rem; }
+        .partners-grid { grid-template-columns: 1fr; }
+    }
+</style>
 
 <div class="main-content">
-    <div style="padding: 30px 20px; background: linear-gradient(135deg, #f5f1e8 0%, #e8dcc8 100%); min-height: 100vh;">
+    <div class="partners-container">
         
         <!-- Page Header -->
-        <div style="margin-bottom: 40px; max-width: 1200px; margin-left: auto; margin-right: auto;">
-            <h1 style="font-size: 36px; font-weight: 800; color: #1a1a1a; margin: 0 0 8px 0; font-family: 'Poppins', sans-serif;">
-                Partner Logos Management
-            </h1>
-            <p style="font-size: 14px; color: #666; margin: 0; font-family: 'Poppins', sans-serif;">Upload, manage, and activate partner logos displayed on your website</p>
-        </div>
+        <header class="page-header">
+            <h1>Partner Logos Management</h1>
+            <p>Upload, manage, and activate partner logos displayed on your website</p>
+        </header>
 
         <?php if (isset($success_message)): ?>
-            <div style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border: 1px solid #b1dfbb; border-radius: 12px; padding: 16px 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(21, 87, 36, 0.1); max-width: 1200px; margin-left: auto; margin-right: auto;">
-                <span style="font-size: 22px;">✓</span>
-                <p style="margin: 0; color: #155724; font-weight: 600; font-family: 'Poppins', sans-serif;"><?php echo $success_message; ?></p>
+            <div class="alert-custom alert-success-custom">
+                <i class="bi bi-check-circle-fill"></i>
+                <span><?php echo $success_message; ?></span>
             </div>
         <?php endif; ?>
 
         <?php if (isset($error_message)): ?>
-            <div style="background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); border: 1px solid #f1b0b7; border-radius: 12px; padding: 16px 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(220, 53, 69, 0.1); max-width: 1200px; margin-left: auto; margin-right: auto;">
-                <span style="font-size: 22px;">✕</span>
-                <p style="margin: 0; color: #721c24; font-weight: 600; font-family: 'Poppins', sans-serif;"><?php echo $error_message; ?></p>
+            <div class="alert-custom alert-error-custom">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span><?php echo $error_message; ?></span>
             </div>
         <?php endif; ?>
 
-        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+        <div class="partners-grid">
             
             <!-- Upload Card -->
-            <div style="background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 1px solid rgba(248, 212, 139, 0.2); height: fit-content;">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 28px;">
-                    <div style="background: linear-gradient(135deg, #f8d48b 0%, #f1d18a 100%); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 12px rgba(248, 212, 139, 0.3);">📤</div>
+            <div class="card-custom">
+                <div class="card-header-custom">
+                    <div class="icon-box"><i class="bi bi-cloud-arrow-up"></i></div>
                     <div>
-                        <h2 style="font-size: 20px; font-weight: 700; margin: 0; color: #1a1a1a; font-family: 'Poppins', sans-serif;">Upload Logo</h2>
-                        <p style="font-size: 12px; color: #999; margin: 4px 0 0 0; font-family: 'Poppins', sans-serif;">Add new partner</p>
+                        <h2>Upload Logo</h2>
                     </div>
                 </div>
 
                 <form method="POST" enctype="multipart/form-data">
-                    <div style="margin-bottom: 24px;">
-                        <label for="logo" style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">Select Image</label>
-                        <div style="position: relative; border: 2px dashed #f8d48b; border-radius: 10px; padding: 20px; text-align: center; background: rgba(248, 212, 139, 0.05); transition: all 0.3s ease; cursor: pointer; min-height: 160px; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.borderColor='#e0be6f'; this.style.background='rgba(248, 212, 139, 0.1)';" onmouseout="this.style.borderColor='#f8d48b'; this.style.background='rgba(248, 212, 139, 0.05)';">
-                            <input type="file" id="logo" name="logo" accept="image/*" required style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" onchange="previewLogo(event)">
-                            <div id="logo-upload-prompt">
-                                <div style="font-size: 32px; margin-bottom: 8px;">📁</div>
-                                <p style="margin: 0 0 4px 0; font-weight: 600; color: #333; font-family: 'Poppins', sans-serif; font-size: 14px;">Click to upload</p>
-                                <p style="margin: 0; font-size: 12px; color: #999; font-family: 'Poppins', sans-serif;">JPG, PNG, GIF (Max 5MB)</p>
-                            </div>
-                            <img id="logo-preview" src="#" alt="Logo Preview" style="display: none; max-width: 100%; max-height: 150px; border-radius: 8px;">
+                    <div class="upload-zone">
+                        <input type="file" id="logo" name="logo" accept="image/*" required style="position: absolute; inset: 0; opacity: 0; cursor: pointer;" onchange="previewLogo(event)">
+                        <div id="logo-preview-container" style="display: none; width: 100%; text-align: center;">
+                            <img id="logo-preview" src="#" alt="Logo Preview" style="max-width: 100%; max-height: 140px; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Click or drag to change</p>
                         </div>
+                        
+                            <div id="logo-upload-prompt">
+                            <i class="bi bi-image" style="font-size: 2rem; color: var(--accent-gold); margin-bottom: 0.5rem;"></i>
+                            <p style="margin: 0; font-weight: 600; color: var(--text-main); font-size: 0.9rem;">Drop image or click</p>
+                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">JPG, PNG, GIF up to 5MB</p>
+                            </div>
                     </div>
 
-                    <button type="submit" name="upload_logo" 
-                            style="width: 100%; background: linear-gradient(135deg, #f8d48b 0%, #f1d18a 100%); color: #000; padding: 16px 24px; font-size: 14px; font-weight: 700; border: none; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(248, 212, 139, 0.3);"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(248, 212, 139, 0.4)';"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(248, 212, 139, 0.3)';">
-                        🚀 Upload Logo
+                    <button type="submit" name="upload_logo" class="btn-premium">
+                        <i class="bi bi-plus-circle"></i> Add Partner
                     </button>
                 </form>
             </div>
 
             <!-- Partners List -->
-            <div style="background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 1px solid rgba(248, 212, 139, 0.2);">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 28px;">
-                    <div style="background: linear-gradient(135deg, #b2853f 0%, #c29a54 100%); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 12px rgba(178, 133, 63, 0.3);">🤝</div>
+            <div class="card-custom">
+                <div class="card-header-custom">
+                    <div class="icon-box" style="background: #ecfdf5; color: var(--accent-green); border-color: #d1fae5;">
+                        <i class="bi bi-people"></i>
+                    </div>
                     <div>
-                        <h2 style="font-size: 20px; font-weight: 700; margin: 0; color: #1a1a1a; font-family: 'Poppins', sans-serif;">Active Partners</h2>
-                        <p style="font-size: 12px; color: #999; margin: 4px 0 0 0; font-family: 'Poppins', sans-serif;">Manage your partners</p>
+                        <h2>Active Partners</h2>
                     </div>
                 </div>
 
                 <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; font-family: 'Poppins', sans-serif;">
+                    <table class="table-custom">
                         <thead>
-                            <tr style="border-bottom: 2px solid #f0f0f0; background: #fafafa;">
-                                <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Logo</th>
-                                <th style="padding: 16px; text-align: center; font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
-                                <th style="padding: 16px; text-align: right; font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Actions</th>
+                            <tr>
+                                <th>Logo Preview</th>
+                                <th style="text-align: center;">Visibility</th>
+                                <th style="text-align: right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -197,34 +428,30 @@ $partners = $conn->query("SELECT * FROM partners ORDER BY id DESC");
                             while ($partner = $partners->fetch_assoc()): 
                                 $count++;
                             ?>
-                                <tr style="border-bottom: 1px solid #f0f0f0; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(248, 212, 139, 0.08)';" onmouseout="this.style.background='transparent';">
-                                    <td style="padding: 16px; text-align: left;">
-                                        <div style="background: #f5f5f5; padding: 8px; border-radius: 8px; display: inline-block;">
-                                            <img src="uploads/partners/<?php echo htmlspecialchars($partner['logo']); ?>"
-                                                 alt="Partner Logo" style="height: 50px; width: auto; max-width: 120px; display: block;">
+                                <tr>
+                                    <td>
+                                        <div class="logo-wrapper">
+                                            <img src="uploads/partners/<?php echo htmlspecialchars($partner['logo']); ?>" loading="lazy"
+                                                 alt="Partner Logo" style="height: 40px; width: auto; max-width: 120px; display: block; object-fit: contain;">
                                         </div>
                                     </td>
-                                    <td style="padding: 16px; text-align: center;">
+                                    <td style="text-align: center;">
                                         <?php if ($partner['status'] == 'active'): ?>
-                                            <span style="display: inline-block; background: linear-gradient(135deg, #d4edda 0%, #c8e6c9 100%); color: #2e7d32; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">✓ Active</span>
+                                            <span class="status-pill status-active">Live</span>
                                         <?php else: ?>
-                                            <span style="display: inline-block; background: linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%); color: #616161; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">○ Inactive</span>
+                                            <span class="status-pill status-inactive">Hidden</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="padding: 16px; text-align: right;">
-                                        <a href="?toggle=<?php echo $partner['id']; ?>" 
-                                           style="display: inline-block; padding: 8px 14px; margin-right: 8px; background: linear-gradient(135deg, #f8d48b 0%, #f1d18a 100%); color: #000; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;"
-                                           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(248, 212, 139, 0.3)';"
-                                           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                                            <?php echo $partner['status'] == 'active' ? '⊘ Deactivate' : '✓ Activate'; ?>
-                                        </a>
-                                        <a href="?delete=<?php echo $partner['id']; ?>" 
-                                           onclick="return confirm('Are you sure? This action cannot be undone.');"
-                                           style="display: inline-block; padding: 8px 14px; background: #f8e4e4; color: #d32f2f; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;"
-                                           onmouseover="this.style.background='#ffcdd2'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(211, 47, 47, 0.2)';"
-                                           onmouseout="this.style.background='#f8e4e4'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                                            🗑 Delete
-                                        </a>
+                                    <td style="text-align: right;">
+                                        <div class="action-group">
+                                            <a href="?toggle=<?php echo $partner['id']; ?>" class="btn-action btn-toggle" title="Change Visibility">
+                                                <i class="bi <?php echo $partner['status'] == 'active' ? 'bi-eye-slash' : 'bi-eye'; ?>"></i>
+                                            </a>
+                                            <a href="?delete=<?php echo $partner['id']; ?>" class="btn-action btn-delete" 
+                                               onclick="return confirm('Are you sure you want to delete this partner logo?');" title="Delete Permanent">
+                                                <i class="bi bi-trash3"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
@@ -244,24 +471,13 @@ $partners = $conn->query("SELECT * FROM partners ORDER BY id DESC");
     </div>
 </div>
 
-<style>
-    @media (max-width: 992px) {
-        [style*="grid-template-columns: 1fr 2fr"] {
-            grid-template-columns: 1fr !important;
-        }
-    }
-    @media (max-width: 768px) {
-        h1 { font-size: 28px !important; }
-    }
-</style>
-
 <script>
 function previewLogo(event) {
     const reader = new FileReader();
     reader.onload = function(){
         const output = document.getElementById('logo-preview');
         output.src = reader.result;
-        output.style.display = 'block';
+        document.getElementById('logo-preview-container').style.display = 'block';
         document.getElementById('logo-upload-prompt').style.display = 'none';
     };
     if (event.target.files[0]) {

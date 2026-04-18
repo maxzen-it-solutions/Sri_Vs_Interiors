@@ -43,117 +43,270 @@ if (!$stats) {
 ?>
 
 <?php include 'admin_sidebar.php'; ?>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --admin-bg: #f8fafc;
+        --card-bg: #ffffff;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --accent-gold: #c8b16f;
+        --accent-blue: #3b82f6;
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
+        --border-color: #e2e8f0;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .main-content {
+        padding: 2.5rem 2.5rem 5rem 2.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .stats-container {
+        background-color: var(--admin-bg);
+        min-height: calc(100vh - 60px);
+    }
+
+    .page-header {
+        margin-bottom: 2.5rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.875rem;
+        font-weight: 800;
+        color: var(--text-main);
+        letter-spacing: -0.025em;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .alert-success-custom {
+        background: #ecfdf5;
+        border: 1px solid #10b981;
+        color: #065f46;
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+
+    .card-custom {
+        background: var(--card-bg);
+        border-radius: 1.25rem;
+        padding: 2rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        transition: var(--transition);
+    }
+
+    .card-custom:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding: 0;
+        background: none;
+        border: none;
+    }
+
+    .icon-box {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        background: #fffcf5;
+        color: var(--accent-gold);
+        border: 1px solid #fdf3dc;
+    }
+
+    .card-header h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-main);
+    }
+
+    .form-group-custom {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group-custom label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 0.625rem;
+    }
+
+    .input-custom {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.625rem;
+        font-size: 1rem;
+        transition: var(--transition);
+        background-color: #fff;
+    }
+
+    .input-custom:focus {
+        outline: none;
+        border-color: var(--accent-gold);
+        box-shadow: 0 0 0 4px rgba(200, 177, 111, 0.1);
+    }
+
+    .btn-update {
+        width: 100%;
+        background-color: var(--text-main);
+        color: white;
+        padding: 0.875rem;
+        border-radius: 0.625rem;
+        border: none;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-update:hover {
+        background-color: #1e293b;
+        transform: translateY(-1px);
+    }
+
+    .display-stat-item {
+        padding: 1.25rem;
+        border-radius: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        background: #f8fafc;
+        border: 1px solid var(--border-color);
+    }
+
+    .display-stat-item .label {
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+
+    .display-stat-item .value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-main);
+    }
+
+    .line-clamp {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    @media (max-width: 768px) {
+        .main-content { padding: 5rem 1rem 2rem 1rem; }
+        .stats-grid { grid-template-columns: 1fr; }
+    }
+</style>
 
 <div class="main-content">
-    <div class="container-fluid" style="padding: 30px 20px; background: linear-gradient(135deg, #f5f1e8 0%, #e8dcc8 100%); min-height: 100vh;">
+    <div class="stats-container">
         
-        <!-- Page Header -->
-        <div style="margin-bottom: 40px;">
-            <h1 style="font-size: 36px; font-weight: 800; color: #1a1a1a; margin: 0 0 8px 0; font-family: 'Poppins', sans-serif;">
-                Project Statistics Management
-            </h1>
-            <p style="font-size: 14px; color: #666; margin: 0; font-family: 'Poppins', sans-serif;">Manage and update your project statistics across the website</p>
-        </div>
+        <header class="page-header">
+            <h1>Project Statistics</h1>
+            <p>Manage the performance indicators displayed across your premium interior website.</p>
+        </header>
 
         <?php if (isset($success_message)): ?>
-            <div style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border: 1px solid #b1dfbb; border-radius: 12px; padding: 16px 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(21, 87, 36, 0.1);">
-                <span style="font-size: 22px;">✓</span>
-                <p style="margin: 0; color: #155724; font-weight: 600; font-family: 'Poppins', sans-serif;"><?php echo $success_message; ?></p>
+            <div class="alert-success-custom">
+                <i class="bi bi-check-circle-fill"></i>
+                <span><?php echo $success_message; ?></span>
             </div>
         <?php endif; ?>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
-            
-            <!-- Update Form Card -->
-            <div style="background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 1px solid rgba(248, 212, 139, 0.2); transition: all 0.3s ease;">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 28px;">
-                    <div style="background: linear-gradient(135deg, #f8d48b 0%, #f1d18a 100%); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 12px rgba(248, 212, 139, 0.3);">📊</div>
+        <div class="stats-grid">
+            <!-- Update Form -->
+            <div class="card-custom">
+                <div class="card-header">
+                    <div class="icon-box"><i class="bi bi-pencil-square"></i></div>
                     <div>
-                        <h2 style="font-size: 24px; font-weight: 700; margin: 0; color: #1a1a1a; font-family: 'Poppins', sans-serif;">Update Statistics</h2>
-                        <p style="font-size: 12px; color: #999; margin: 4px 0 0 0; font-family: 'Poppins', sans-serif;">Modify project numbers</p>
+                        <h2>Modify Numbers</h2>
                     </div>
                 </div>
 
-                <form method="POST" style="display: flex; flex-direction: column; gap: 20px;">
-                    
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">Total Projects</label>
-                        <input type="number" name="total_projects"
-                               value="<?php echo $stats['total_projects']; ?>" required min="0"
-                               style="width: 100%; padding: 14px 16px; border: 2px solid #e5e5e5; border-radius: 10px; font-size: 16px; font-family: 'Poppins', sans-serif; transition: all 0.3s ease; box-sizing: border-box;"
-                               onmouseover="this.style.borderColor='#f8d48b';" onmouseout="this.style.borderColor='#e5e5e5';" onfocus="this.style.borderColor='#f8d48b'; this.style.boxShadow='0 0 0 3px rgba(248, 212, 139, 0.1)';" onblur="this.style.boxShadow='none';">
+                <form method="POST">
+                    <div class="form-group-custom">
+                        <label>Total Projects</label>
+                        <input type="number" name="total_projects" class="input-custom" value="<?php echo $stats['total_projects']; ?>" required min="0">
                     </div>
 
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">Completed Projects</label>
-                        <input type="number" name="completed_projects"
-                               value="<?php echo $stats['completed_projects']; ?>" required min="0"
-                               style="width: 100%; padding: 14px 16px; border: 2px solid #e5e5e5; border-radius: 10px; font-size: 16px; font-family: 'Poppins', sans-serif; transition: all 0.3s ease; box-sizing: border-box;"
-                               onmouseover="this.style.borderColor='#f8d48b';" onmouseout="this.style.borderColor='#e5e5e5';" onfocus="this.style.borderColor='#f8d48b'; this.style.boxShadow='0 0 0 3px rgba(248, 212, 139, 0.1)';" onblur="this.style.boxShadow='none';">
+                    <div class="form-group-custom">
+                        <label>Completed Projects</label>
+                        <input type="number" name="completed_projects" class="input-custom" value="<?php echo $stats['completed_projects']; ?>" required min="0">
                     </div>
 
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif;">Ongoing Projects</label>
-                        <input type="number" name="ongoing_projects"
-                               value="<?php echo $stats['ongoing_projects']; ?>" required min="0"
-                               style="width: 100%; padding: 14px 16px; border: 2px solid #e5e5e5; border-radius: 10px; font-size: 16px; font-family: 'Poppins', sans-serif; transition: all 0.3s ease; box-sizing: border-box;"
-                               onmouseover="this.style.borderColor='#f8d48b';" onmouseout="this.style.borderColor='#e5e5e5';" onfocus="this.style.borderColor='#f8d48b'; this.style.boxShadow='0 0 0 3px rgba(248, 212, 139, 0.1)';" onblur="this.style.boxShadow='none';">
+                    <div class="form-group-custom">
+                        <label>Ongoing Projects</label>
+                        <input type="number" name="ongoing_projects" class="input-custom" value="<?php echo $stats['ongoing_projects']; ?>" required min="0">
                     </div>
 
-                    <button type="submit" name="update_stats" 
-                            style="background: linear-gradient(135deg, #f8d48b 0%, #f1d18a 100%); color: #000; padding: 16px 24px; font-size: 15px; font-weight: 700; border: none; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; margin-top: 10px; font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(248, 212, 139, 0.3);"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(248, 212, 139, 0.4)';"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(248, 212, 139, 0.3)';">
-                        🔄 Update Statistics
+                    <button type="submit" name="update_stats" class="btn-update">
+                        Update Live Data
                     </button>
                 </form>
             </div>
 
-            <!-- Statistics Display Card -->
-            <div style="background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); border: 1px solid rgba(248, 212, 139, 0.2);">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 28px;">
-                    <div style="background: linear-gradient(135deg, #b2853f 0%, #c29a54 100%); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 12px rgba(178, 133, 63, 0.3);">📈</div>
+            <!-- Live Preview -->
+            <div class="card-custom">
+                <div class="card-header">
+                    <div class="icon-box" style="background: #eff6ff; color: var(--accent-blue); border-color: #dbeafe;">
+                        <i class="bi bi-eye"></i>
+                    </div>
                     <div>
-                        <h2 style="font-size: 24px; font-weight: 700; margin: 0; color: #1a1a1a; font-family: 'Poppins', sans-serif;">Current Statistics</h2>
-                        <p style="font-size: 12px; color: #999; margin: 4px 0 0 0; font-family: 'Poppins', sans-serif;">Live project numbers</p>
+                        <h2>Live Preview</h2>
                     </div>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 16px;">
-                    
-                    <!-- Total Projects -->
-                    <div style="background: linear-gradient(135deg, #e8f4f8 0%, #d0e8f0 100%); padding: 20px; border-radius: 12px; border-left: 4px solid #0288d1; position: relative; overflow: hidden;">
-                        <div style="position: absolute; top: 0; right: 0; font-size: 48px; opacity: 0.1;">📊</div>
-                        <p style="font-size: 12px; color: #0277bd; font-weight: 600; text-transform: uppercase; margin: 0 0 8px 0; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Total Projects</p>
-                        <h3 style="font-size: 42px; font-weight: 800; color: #0277bd; margin: 0; font-family: 'Poppins', sans-serif;"><?php echo $stats['total_projects']; ?></h3>
-                    </div>
+                <div class="display-stat-item">
+                    <span class="label">Overall Portfolio</span>
+                    <span class="value"><?php echo number_format($stats['total_projects']); ?></span>
+                </div>
 
-                    <!-- Completed Projects -->
-                    <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding: 20px; border-radius: 12px; border-left: 4px solid #43a047; position: relative; overflow: hidden;">
-                        <div style="position: absolute; top: 0; right: 0; font-size: 48px; opacity: 0.1;">✓</div>
-                        <p style="font-size: 12px; color: #2e7d32; font-weight: 600; text-transform: uppercase; margin: 0 0 8px 0; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Completed Projects</p>
-                        <h3 style="font-size: 42px; font-weight: 800; color: #2e7d32; margin: 0; font-family: 'Poppins', sans-serif;"><?php echo $stats['completed_projects']; ?></h3>
-                    </div>
+                <div class="display-stat-item" style="border-left: 4px solid var(--accent-green);">
+                    <span class="label">Delivered Success</span>
+                    <span class="value" style="color: var(--accent-green);"><?php echo number_format($stats['completed_projects']); ?></span>
+                </div>
 
-                    <!-- Ongoing Projects -->
-                    <div style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 20px; border-radius: 12px; border-left: 4px solid #f57c00; position: relative; overflow: hidden;">
-                        <div style="position: absolute; top: 0; right: 0; font-size: 48px; opacity: 0.1;">⚙️</div>
-                        <p style="font-size: 12px; color: #e65100; font-weight: 600; text-transform: uppercase; margin: 0 0 8px 0; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Ongoing Projects</p>
-                        <h3 style="font-size: 42px; font-weight: 800; color: #e65100; margin: 0; font-family: 'Poppins', sans-serif;"><?php echo $stats['ongoing_projects']; ?></h3>
-                    </div>
-
+                <div class="display-stat-item" style="border-left: 4px solid var(--accent-amber);">
+                    <span class="label">In Progress</span>
+                    <span class="value" style="color: var(--accent-amber);"><?php echo number_format($stats['ongoing_projects']); ?></span>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
-
-<style>
-    @media (max-width: 768px) {
-        .main-content > div[style*="display: grid"] {
-            grid-template-columns: 1fr !important;
-        }
-        h1 { font-size: 28px !important; }
-    }
-</style>

@@ -20,7 +20,9 @@ $imgStmt->bind_param('i', $id);
 $imgStmt->execute();
 $images_res = $imgStmt->get_result();
 $images = [];
-while($row = $images_res->fetch_assoc()) { $images[] = $row; }
+while ($row = $images_res->fetch_assoc()) {
+    $images[] = $row;
+}
 $data['images'] = $images;
 $imgStmt->close();
 
