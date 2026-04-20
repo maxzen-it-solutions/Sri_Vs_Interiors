@@ -1050,14 +1050,15 @@ document.addEventListener("DOMContentLoaded", function() {
                     $targetPage = 'projectsDetail.php?id=' . $p['id'];
 
                     $thumb = 'img/placeholder.jpg';
-                    $imgStmt = $conn->prepare("SELECT image_path FROM project_images 
+                    $mType = 'image';
+                    $imgStmt = $conn->prepare("SELECT image_path, media_type FROM project_images 
                                 WHERE project_id = ? 
-                                ORDER BY order_index ASC, id ASC LIMIT 1");
+                                ORDER BY COALESCE(order_index, id) ASC LIMIT 1");
                     $imgStmt->bind_param('i', $p['id']);
                     $imgStmt->execute();
                     $imgRes = $imgStmt->get_result();
                     if ($imgRes && $row = $imgRes->fetch_assoc()) {
-                        if (!empty($row['image_path'])) $thumb = $row['image_path'];
+                        if (!empty($row['image_path'])) { $thumb = $row['image_path']; $mType = $row['media_type']; }
                     }
                     $imgStmt->close();
                 ?>
@@ -1075,9 +1076,16 @@ document.addEventListener("DOMContentLoaded", function() {
                     box-shadow:0 5px 25px rgba(0,0,0,0.45);
                     transition:transform 0.3s ease, box-shadow 0.3s ease;
                     ">
-                    <img src="<?php echo htmlspecialchars($thumb); ?>" 
+                    <?php if ($mType === 'video'): ?>
+                      <video autoplay muted loop playsinline
+                        style="width:100%; height:100%; object-fit:contain; border-radius:12px;">
+                        <source src="<?php echo htmlspecialchars($thumb); ?>" type="video/mp4">
+                      </video>
+                    <?php else: ?>
+                      <img src="<?php echo htmlspecialchars($thumb); ?>" 
                         alt="<?php echo htmlspecialchars($p['name']); ?>" 
-                        style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                        style="width:100%; height:100%; object-fit:contain; border-radius:12px;">
+                    <?php endif; ?>
 
                     <!-- Bottom Text Overlay: grid keeps button fixed while title can wrap -->
                     <div style="
@@ -1220,8 +1228,9 @@ document.addEventListener("DOMContentLoaded", function() {
         display: block !important;
     }
 
-    /* Same image sizing */
-    .project-card img {
+    /* Same image/video sizing */
+    .project-card img,
+    .project-card video {
         width: 100% !important;
         height: 100% !important;
         object-fit: cover !important;

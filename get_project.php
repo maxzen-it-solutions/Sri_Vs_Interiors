@@ -15,7 +15,7 @@ $res = $stmt->get_result();
 $data = $res->fetch_assoc() ?: []; // Ensure $data is an array if not found
 $stmt->close();
 
-$imgStmt = $conn->prepare("SELECT id, image_path FROM project_images WHERE project_id = ? ORDER BY order_index ASC");
+$imgStmt = $conn->prepare("SELECT id, image_path, media_type FROM project_images WHERE project_id = ? ORDER BY order_index ASC");
 $imgStmt->bind_param('i', $id);
 $imgStmt->execute();
 $images_res = $imgStmt->get_result();

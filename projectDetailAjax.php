@@ -20,22 +20,59 @@ if (!$project) exit;
    FETCH IMAGES
 ------------------------- */
 $images = [];
-$imgStmt = $conn->prepare("SELECT image_path FROM project_images WHERE project_id=? ORDER BY order_index ASC, id ASC");
+$imgStmt = $conn->prepare("SELECT image_path, media_type FROM project_images WHERE project_id=? ORDER BY order_index ASC, id ASC");
 $imgStmt->bind_param('i', $pid);
 $imgStmt->execute();
 $r = $imgStmt->get_result();
 while ($row = $r->fetch_assoc()) {
-  $images[] = $row['image_path'];
+  $images[] = $row;
 }
 $imgStmt->close();
 
-$mainImg = $images[0] ?? 'img/placeholder.jpg';
+$mainImg = count($images) ? $images[0]['image_path'] : 'img/placeholder.jpg';
 ?>
 
 <!-- 👇 data-category used by JS to update heading -->
 <div data-category="<?php echo htmlspecialchars($project['category']); ?>">
 
   <style>
+    .main-project-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    /* Tablet */
+    @media (max-width: 992px) {
+      .main-project-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .main-project-grid > div {
+      min-width: 0;
+    }
+
+    .main-img-holder {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .gallery-main-img {
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      display: block;
+    }
+
+    .main-project-grid h2,
+    .main-project-grid p {
+      word-break: break-word;
+    }
+
     /* Ensure injected fragment styles for arrows are available */
     .proj-arrow {
       position: absolute;
@@ -82,23 +119,28 @@ $mainImg = $images[0] ?? 'img/placeholder.jpg';
     }
   </style>
 
-  <div style="max-width:1200px;margin:0 auto;
-              display:grid;grid-template-columns:2fr 1.3fr;
-              gap:40px;align-items:start;">
+  <div class="main-project-grid">
 
     <!-- LEFT: IMAGES -->
-    <div>
+    <div style="min-width: 0;">
 
       <div style="position:relative; border-radius:14px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.15); background:#000;">
-        <div class="main-img-holder" style="aspect-ratio:auto; height:auto;">
+        <div class="main-img-holder">
           <!-- LEFT ARROW -->
           <button onclick="prevImage()" class="proj-arrow prev" aria-label="Previous image">❮</button>
 
-          <!-- MAIN IMAGE -->
-          <img id="mainProjectImg" class="gallery-main-img"
-            src="<?php echo htmlspecialchars($mainImg); ?>"
-            style="width:100%; height:550px; max-height:70vh; object-fit:cover; display:block;"
-            loading="eager">
+          <div id="mainMediaWrapper">
+            <?php $first = $images[0] ?? null; ?>
+            <?php if ($first && $first['media_type'] === 'video'): ?>
+              <video autoplay muted loop controls class="gallery-main-img">
+                  <source src="<?php echo htmlspecialchars($first['image_path']); ?>" type="video/mp4">
+              </video>
+            <?php else: ?>
+              <img id="mainProjectImg" class="gallery-main-img"
+                   src="<?php echo htmlspecialchars($first['image_path'] ?? 'img/placeholder.jpg'); ?>"
+                   loading="eager">
+            <?php endif; ?>
+          </div>
 
           <!-- RIGHT ARROW -->
           <button onclick="nextImage()" class="proj-arrow next" aria-label="Next image">❯</button>
@@ -110,11 +152,20 @@ $mainImg = $images[0] ?? 'img/placeholder.jpg';
 
           <div id="thumbTrack" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;overflow:hidden;scroll-behavior:smooth;">
             <?php foreach ($images as $index => $img): ?>
-              <img src="<?php echo htmlspecialchars($img); ?>"
-                class="thumb-img"
-                data-index="<?php echo $index; ?>"
-                onclick="setMainImageByIndex(<?php echo $index; ?>)"
-                style="width:70px;height:70px;object-fit:cover;border-radius:6px;cursor:pointer;">
+              <?php if ($img['media_type'] === 'video'): ?>
+                <video class="thumb-img thumb-media"
+                  data-index="<?php echo $index; ?>"
+                  onclick="setMedia(<?php echo $index; ?>)"
+                  style="width:70px;height:70px;object-fit:cover;border-radius:6px;cursor:pointer;">
+                  <source src="<?php echo htmlspecialchars($img['image_path']); ?>">
+                </video>
+              <?php else: ?>
+                <img src="<?php echo htmlspecialchars($img['image_path']); ?>"
+                  class="thumb-img thumb-media"
+                  data-index="<?php echo $index; ?>"
+                  onclick="setMedia(<?php echo $index; ?>)"
+                  style="width:70px;height:70px;object-fit:cover;border-radius:6px;cursor:pointer;">
+              <?php endif; ?>
             <?php endforeach; ?>
           </div>
 
@@ -124,7 +175,7 @@ $mainImg = $images[0] ?? 'img/placeholder.jpg';
     </div>
 
     <!-- RIGHT: DETAILS -->
-    <div>
+    <div style="min-width: 0;">
       <h2 style="margin-top:0;">
         <?php echo htmlspecialchars($project['name']); ?>
       </h2>

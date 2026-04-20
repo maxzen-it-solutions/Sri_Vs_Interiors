@@ -13,7 +13,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
  */
 function optimizeImage($sourcePath, $targetDir)
 {
-    if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
+    $absTargetDir = __DIR__ . "/" . $targetDir;
+    if (!file_exists($absTargetDir)) mkdir($absTargetDir, 0755, true);
 
     $info = getimagesize($sourcePath);
     $mime = $info['mime'];
@@ -34,7 +35,7 @@ function optimizeImage($sourcePath, $targetDir)
 
     $width = imagesx($img);
     $height = imagesy($img);
-    $maxSize = 1800;
+    $maxSize = 1200; // Reduced for better performance on live servers
 
     // Maintain Aspect Ratio & Resize
     if ($width > $maxSize || $height > $maxSize) {
@@ -48,13 +49,21 @@ function optimizeImage($sourcePath, $targetDir)
         $img = imagescale($img, $newWidth, $newHeight);
     }
 
-    $newName = pathinfo($sourcePath, PATHINFO_FILENAME) . "_" . time() . ".webp";
-    $destination = $targetDir . $newName;
-
-    // Convert to WebP with 80% quality
-    imagewebp($img, $destination, 80);
+    $baseName = pathinfo($sourcePath, PATHINFO_FILENAME) . "_" . time();
+    
+    // Check for WebP support and provide fallback to JPEG
+    if (function_exists('imagewebp')) {
+        $newName = $baseName . ".webp";
+        $destination = $absTargetDir . $newName;
+        imagewebp($img, $destination, 80);
+    } else {
+        $newName = $baseName . ".jpg";
+        $destination = $absTargetDir . $newName;
+        imagejpeg($img, $destination, 80);
+    }
+    
     imagedestroy($img);
-    return $destination;
+    return $targetDir . $newName; // Returns relative path for DB
 }
 
 // ----------------- Handle Add Product -----------------
@@ -78,13 +87,28 @@ if (isset($_POST['add_product'])) {
     // Upload multiple images
     if (!empty($_FILES['images']['name'][0])) {
         $targetDir = "uploads/";
+        $targetDirAbs = __DIR__ . "/" . $targetDir;
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4'];
         foreach ($_FILES['images']['tmp_name'] as $index => $tmpName) {
-            $optimizedPath = optimizeImage($tmpName, $targetDir);
+            if (empty($tmpName)) continue;
+
+            $fileType = $_FILES['images']['type'][$index];
+            if (!in_array($fileType, $allowedTypes)) continue;
+
+            $mediaType = (strpos($fileType, 'video') !== false) ? 'video' : 'image';
+
+            if ($mediaType === 'image') {
+                $optimizedPath = optimizeImage($tmpName, $targetDir);
+            } else {
+                $newName = pathinfo($_FILES['images']['name'][$index], PATHINFO_FILENAME) . "_" . time() . "_" . $index . ".mp4";
+                $optimizedPath = $targetDir . $newName; // DB path
+                if (!move_uploaded_file($tmpName, $targetDirAbs . $newName)) $optimizedPath = false;
+            }
             if (!$optimizedPath) continue;
 
-            $imgStmt = $conn->prepare("INSERT INTO project_images (project_id, image_path, order_index) VALUES (?, ?, ?)");
+            $imgStmt = $conn->prepare("INSERT INTO project_images (project_id, image_path, order_index, media_type) VALUES (?, ?, ?, ?)");
             $order_index = $index;
-            $imgStmt->bind_param("isi", $project_id, $optimizedPath, $order_index);
+            $imgStmt->bind_param("isis", $project_id, $optimizedPath, $order_index, $mediaType);
             $imgStmt->execute();
         }
     }
@@ -197,13 +221,28 @@ if (isset($_POST['edit_product'])) {
     // Upload any new images
     if (!empty($_FILES['images']['name'][0])) {
         $targetDir = "uploads/";
+        $targetDirAbs = __DIR__ . "/" . $targetDir;
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4'];
         foreach ($_FILES['images']['tmp_name'] as $index => $tmpName) {
-            $optimizedPath = optimizeImage($tmpName, $targetDir);
+            if (empty($tmpName)) continue;
+
+            $fileType = $_FILES['images']['type'][$index];
+            if (!in_array($fileType, $allowedTypes)) continue;
+
+            $mediaType = (strpos($fileType, 'video') !== false) ? 'video' : 'image';
+
+            if ($mediaType === 'image') {
+                $optimizedPath = optimizeImage($tmpName, $targetDir);
+            } else {
+                $newName = pathinfo($_FILES['images']['name'][$index], PATHINFO_FILENAME) . "_" . time() . "_" . $index . ".mp4";
+                $optimizedPath = $targetDir . $newName; // DB path
+                if (!move_uploaded_file($tmpName, $targetDirAbs . $newName)) $optimizedPath = false;
+            }
             if (!$optimizedPath) continue;
 
-            $imgStmt = $conn->prepare("INSERT INTO project_images (project_id, image_path, order_index) VALUES (?, ?, ?)");
+            $imgStmt = $conn->prepare("INSERT INTO project_images (project_id, image_path, order_index, media_type) VALUES (?, ?, ?, ?)");
             $order_index = time() + $index;
-            $imgStmt->bind_param("isi", $id, $optimizedPath, $order_index);
+            $imgStmt->bind_param("isis", $id, $optimizedPath, $order_index, $mediaType);
             $imgStmt->execute();
         }
     }
@@ -841,7 +880,7 @@ $projects = $conn->query("SELECT * FROM products ORDER BY id DESC");
             </div>
             <?php while ($row = $projects->fetch_assoc()):
                 // fetch images for this project
-                $stmt_img = $conn->prepare("SELECT id, image_path FROM project_images WHERE project_id=? ORDER BY order_index ASC");
+                $stmt_img = $conn->prepare("SELECT id, image_path, media_type FROM project_images WHERE project_id=? ORDER BY order_index ASC");
                 $stmt_img->bind_param("i", $row['id']);
                 $stmt_img->execute();
                 $res = $stmt_img->get_result();
@@ -865,7 +904,11 @@ $projects = $conn->query("SELECT * FROM products ORDER BY id DESC");
                             $displayImgs = array_slice($images, 0, 3);
                             foreach ($displayImgs as $img): ?>
                                 <div class="img-thumb-container skeleton">
-                                    <img src="<?= $img['image_path'] ?>" loading="lazy" onload="this.style.opacity='1'; this.parentElement.classList.remove('skeleton')" onerror="this.parentElement.classList.remove('skeleton')">
+                                    <?php if ($img['media_type'] === 'video'): ?>
+                                        <video src="<?= $img['image_path'] ?>" style="width:100%; height:100%; object-fit:cover; opacity: 1;"></video>
+                                    <?php else: ?>
+                                        <img src="<?= $img['image_path'] ?>" loading="lazy" onload="this.style.opacity='1'; this.parentElement.classList.remove('skeleton')" onerror="this.parentElement.classList.remove('skeleton')">
+                                    <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
                             <button type="button" class="img-more images-count-btn" data-project-id="<?= $row['id']; ?>">
@@ -911,12 +954,20 @@ $projects = $conn->query("SELECT * FROM products ORDER BY id DESC");
                         wrap.style.position = 'relative';
                         wrap.style.width = '120px';
                         wrap.style.height = '90px';
-                        const i = document.createElement('img');
-                        i.src = img.image_path;
-                        i.style.width = '100%';
-                        i.style.height = '100%';
-                        i.style.objectFit = 'cover';
-                        i.style.borderRadius = '6px';
+                        
+                        let mediaEl;
+                        if (img.media_type === 'video') {
+                            mediaEl = document.createElement('video');
+                            mediaEl.src = img.image_path;
+                        } else {
+                            mediaEl = document.createElement('img');
+                            mediaEl.src = img.image_path;
+                        }
+                        
+                        mediaEl.style.width = '100%';
+                        mediaEl.style.height = '100%';
+                        mediaEl.style.objectFit = 'cover';
+                        mediaEl.style.borderRadius = '6px';
                         const del = document.createElement('a');
                         del.href = 'manage_products.php?delete_image=' + img.id;
                         del.textContent = 'x';
@@ -935,7 +986,7 @@ $projects = $conn->query("SELECT * FROM products ORDER BY id DESC");
                         del.onclick = function(evt) {
                             evt.preventDefault();
                         };
-                        wrap.appendChild(i);
+                        wrap.appendChild(mediaEl);
                         wrap.appendChild(del);
                         grid.appendChild(wrap);
                     });
@@ -1027,7 +1078,7 @@ $projects = $conn->query("SELECT * FROM products ORDER BY id DESC");
                     </div>
                     <div class="form-group">
                         <label>Upload Gallery</label>
-                        <input type="file" name="images[]" class="form-control-custom" accept="image/*" multiple>
+                        <input type="file" name="images[]" class="form-control-custom" accept="image/*,video/mp4" multiple>
                     </div>
                     <div class="form-group">
                         <label>Visibility Status</label>
@@ -1100,8 +1151,8 @@ $projects = $conn->query("SELECT * FROM products ORDER BY id DESC");
                         <div id="existing_images"></div>
                     </div>
                     <div class="form-group">
-                        <label>Add More Images</label>
-                        <input type="file" name="images[]" class="form-control-custom" accept="image/*" multiple>
+                        <label>Add More Media (Images/Video)</label>
+                        <input type="file" name="images[]" class="form-control-custom" accept="image/*,video/mp4" multiple>
                     </div>
                     <div class="form-group">
                         <label>Visibility Status</label>
@@ -1153,8 +1204,15 @@ $projects = $conn->query("SELECT * FROM products ORDER BY id DESC");
                         div.className = 'draggable-img';
                         div.draggable = true;
                         div.dataset.id = img.id;
-                        // delete link uses class 'delete-image' and carries project id so AJAX can update UI
-                        div.innerHTML = `<img src="${img.image_path}"><a href="manage_products.php?delete_image=${img.id}" class="delete-image" data-img-id="${img.id}" data-project-id="${data.id}">x</a>`;
+                        
+                        let mediaHtml = '';
+                        if (img.media_type === 'video') {
+                            mediaHtml = `<video src="${img.image_path}" style="width:100%; height:100%; object-fit:cover; border-radius:0.5rem;"></video>`;
+                        } else {
+                            mediaHtml = `<img src="${img.image_path}">`;
+                        }
+                        
+                        div.innerHTML = `${mediaHtml}<a href="manage_products.php?delete_image=${img.id}" class="delete-image" data-img-id="${img.id}" data-project-id="${data.id}">x</a>`;
                         imgContainer.appendChild(div);
                     });
                     makeImagesDraggable();

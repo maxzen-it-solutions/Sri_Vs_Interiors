@@ -1,10 +1,11 @@
 <?php
 $servername = "localhost";
-$username = "u691586039_interior";
-$password = "Interiors@1234"; // change this
+$username = "root";
+$password = "";
 $dbname = "u691586039_interior";
+$port = 3307;
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($servername, $username, $password, $dbname, $port);
 
 // Check connection
 if ($conn->connect_error) {
@@ -15,9 +16,10 @@ if ($conn->connect_error) {
 // Set charset
 $conn->set_charset("utf8mb4");
 
-// Helper function for safe output
+/**
+ * Global helper to sanitize output
+ */
 function h($str)
 {
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
-?>

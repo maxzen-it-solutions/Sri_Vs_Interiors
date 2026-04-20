@@ -29,7 +29,7 @@
       <!-- Center Logo -->
       <div class="col-md-4 text-center mb-4 mb-md-0">
         <span class="logo">
-          <img alt="logo" src="img/logo.png" style="width: 200px; height: auto;">
+          <img id="footerLogo" alt="logo" src="img/logo.png" style="width: 200px; height: auto; cursor: pointer;">
         </span>
       </div>
 
@@ -226,11 +226,21 @@
     let timer = null;
 
     // Select all logo variations (Desktop, Sticky, Mobile)
-    const logos = document.querySelectorAll("#adminLogo, #adminLogoSticky, #adminLogoMobile");
+    const logos = document.querySelectorAll("#adminLogo, #adminLogoSticky, #adminLogoMobile, #footerLogo");
 
     logos.forEach(logo => {
       logo.addEventListener("click", function(e) {
-        -e.preventDefault(); // Prevent default navigation on every click to allow counting
+        e.preventDefault(); // Prevent default navigation on every click to allow counting
+
+        // 1. Haptic Feedback: Vibrate for 40ms on supported mobile devices
+        if (navigator.vibrate) navigator.vibrate(40);
+
+        // 2. Visual Feedback: Brief opacity dip to register the click
+        this.style.opacity = "0.5";
+        setTimeout(() => {
+          this.style.opacity = "1";
+        }, 100);
+
         clickCount++;
 
         clearTimeout(timer);

@@ -7,25 +7,17 @@ include 'db_connect.php';
 ------------------------- */
 // Optimized query using correlated subquery to avoid N+1 problem
 $sql = "SELECT p.id, p.name, p.category, p.project_phase, 
-        (SELECT image_path FROM project_images WHERE project_id = p.id ORDER BY COALESCE(order_index, id) ASC LIMIT 1) AS image
+        (SELECT CONCAT(image_path, '||', media_type) 
+         FROM project_images 
+         WHERE project_id = p.id 
+         ORDER BY COALESCE(order_index, id) ASC 
+         LIMIT 1) AS media
         FROM products p 
         WHERE p.status='active' 
         ORDER BY p.created_at DESC";
-$res = $conn->query($sql);
-$projects = [];
-while ($row = $res->fetch_assoc()) $projects[] = $row;
-
-// Separate projects into two groups
-$ongoingProjects = [];
-$completedProjects = [];
-foreach ($projects as $p) {
-  // Ongoing includes 'present' and 'future' (anything not 'past')
-  if ($p['project_phase'] === 'past') {
-    $completedProjects[] = $p;
-  } else {
-    $ongoingProjects[] = $p;
-  }
-}
+$res = $conn->query($sql); // Execute the query
+$allProjects = []; // Use a single array for all projects
+while ($row = $res->fetch_assoc()) $allProjects[] = $row; // Populate the array
 ?>
 
 <!-- =========================
@@ -57,58 +49,34 @@ foreach ($projects as $p) {
     <input type="text" id="searchInput" placeholder="Search project name...">
   </div>
 
-  <!-- COMPLETED PROJECTS -->
-  <div id="completedSection" class="project-group-wrapper">
-    <div class="section-title-container">
-      <h2>Completed Projects</h2>
-    </div>
+  <!-- ALL PROJECTS -->
+  <div id="allProjectsSection" class="project-group-wrapper">
     <div class="projects-grid">
-      <?php if (empty($completedProjects)): ?>
+      <?php if (empty($allProjects)): ?>
         <div class="empty-msg-container">
-          <p class="empty-msg">No completed projects available.</p>
+          <p class="empty-msg">No projects found.</p>
         </div>
       <?php else: ?>
-        <?php foreach ($completedProjects as $p): ?>
+        <?php foreach ($allProjects as $p): ?>
           <div class="project-card"
             data-phase="<?= h($p['project_phase']); ?>"
             data-category="<?= h($p['category']); ?>"
             data-name="<?= h(strtolower($p['name'])); ?>">
-            <img src="<?= h(!empty($p['image']) ? $p['image'] : 'img/placeholder.jpg'); ?>"
-              alt="<?= h($p['name']); ?>">
-            <div class="overlay">
-              <div class="card-text-wrap">
-                <h4 class="project-title"><?= h(strtoupper($p['name'])); ?></h4>
-              </div>
-              <a href="projectsDetail.php?id=<?= $p['id']; ?>" class="view-more-btn">View More</a>
-            </div>
-          </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
-    </div>
-  </div>
+            <?php
+            $mediaData = !empty($p['media']) ? explode('||', $p['media']) : [];
+            $mediaPath = $mediaData[0] ?? 'img/placeholder.jpg';
+            $mediaType = $mediaData[1] ?? 'image';
+            ?>
 
-  <!-- ONGOING PROJECTS -->
-  <div id="ongoingSection" class="project-group-wrapper">
-    <div class="section-title-container">
-      <h2>Ongoing Projects</h2>
-    </div>
-    <div class="projects-grid">
-      <?php if (empty($ongoingProjects)): ?>
-        <div class="empty-msg-container">
-          <p class="empty-msg">No ongoing projects available.</p>
-        </div>
-      <?php else: ?>
-        <?php foreach ($ongoingProjects as $p): ?>
-          <div class="project-card"
-            data-phase="<?= h($p['project_phase']); ?>"
-            data-category="<?= h($p['category']); ?>"
-            data-name="<?= h(strtolower($p['name'])); ?>">
-
-            <img src="<?= h(!empty($p['image']) ? $p['image'] : 'img/placeholder.jpg'); ?>"
-              alt="<?= h($p['name']); ?>">
-            alt="<?= h($p['name']); ?>"
-            loading="lazy">
-
+            <?php if ($mediaType === 'video'): ?>
+              <video autoplay muted loop playsinline
+                style="width:100%; height:100%; object-fit:cover;">
+                <source src="<?= h($mediaPath); ?>" type="video/mp4">
+              </video>
+            <?php else: ?>
+              <img src="<?= h($mediaPath); ?>"
+                alt="<?= h($p['name']); ?>">
+            <?php endif; ?>
             <div class="overlay">
               <div class="card-text-wrap">
                 <h4 class="project-title"><?= h(strtoupper($p['name'])); ?></h4>
@@ -158,6 +126,13 @@ foreach ($projects as $p) {
     gap: 10px;
     padding: 0;
     margin: 0;
+  }
+
+  .project-card video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   #phaseFilter li {

@@ -18,3 +18,6 @@ UPDATE products
 SET project_phase = 'future'
 WHERE id IN (11,12,13);
 
+-- Add media_type to project_images to support video/image classification
+ALTER TABLE project_images 
+ADD COLUMN media_type ENUM('image', 'video') NOT NULL DEFAULT 'image' AFTER order_index;
